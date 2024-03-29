@@ -25,9 +25,8 @@ class LMDBDataset(Dataset, IFile):
         readonly: bool = False,
         dynamic: bool = False,
         forced_process: bool = False,
-        *,
-        processed_dir: str,
-        processed_fname: str,
+        processed_dir: str = None,
+        processed_fname: str = None,
     ):
         super(LMDBDataset, self).__init__()
         self.raw_dir = raw_dir
@@ -41,7 +40,7 @@ class LMDBDataset(Dataset, IFile):
         self._data: Optional[Dict[Hashable, Dict[Hashable, Any]]] = None
 
         to_process = False
-        if not readonly:
+        if not readonly and not dynamic:
             self.processed_dir = processed_dir
             self.processed_fname = processed_fname
             self.processed_fpath = os.path.join(
@@ -59,15 +58,14 @@ class LMDBDataset(Dataset, IFile):
         # TODO : reduce coupling
         # !? This means that the dataset is not dynamic
         if not hasattr(self, "_len"):
-            self._len = (
-                len(self._indices)
-                if self._indices is not None
-                else (
-                    self.processed_txn.cursor().count()
-                    if not self.dynamic
-                    else len(self._data)
-                )
-            )
+            if self._indices is not None:
+                self._len = len(self._indices)
+            elif self.readonly:
+                self._len = self.get_txn_len(self.raw_txn)
+            elif self.dynamic:
+                self._len = len(self._data)
+            else:
+                self._len = self.get_txn_len(self.processed_txn)
         return self._len
 
     def __getitem__(
@@ -86,17 +84,25 @@ class LMDBDataset(Dataset, IFile):
             return self.index_select(idx)
 
     def __del__(self):
+        self.raw_txn.abort()
         self.raw_env.close()
-        if self.dynamic:
+        if not self.dynamic:
+            self.processed_txn.abort()
             self.processed_env.close()
+
+    @staticmethod
+    def get_txn_len(txn: lmdb.Transaction) -> int:
+        return len(list(txn.cursor().iternext(values=False)))
 
     def _check_processed(self, fpath: str):
         return os.path.exists(fpath)
 
     def _check_processed_complete(self, processed_fpath: str):
-        r"""Check if the processed file is complete"""
+        r"""Check if the processed file is complete, in case the processing was interrupted during the last run.
+        Since the destructor will take care of the cleanup of the incomplete file, simply check if the file has any data.
+        """
         env, txn = self.load(processed_fpath, write=False)
-        complete = txn.cursor().count() == self.raw_txn.cursor().count()
+        complete = self.get_txn_len(txn) != 0
         env.close()
         return complete
 
@@ -105,6 +111,7 @@ class LMDBDataset(Dataset, IFile):
         key: Union[Hashable, Tuple[Hashable]],
         _sample: Optional[Dict[Hashable, Any]] = None,
     ) -> bool:
+        # TODO support to list
         _sample = self.get_fn(0) if _sample is None else _sample
         if not hasattr(_sample, "keys"):
             return False
@@ -117,18 +124,23 @@ class LMDBDataset(Dataset, IFile):
             key, *rest = key
             flag = key in _sample.keys()
             _sample = _sample[key]
-            return flag and self._check_has_key(rest, _sample)
+            return flag and self._check_has_key(tuple(rest), _sample)
+        
+    def _check_sample_format_unified(self) -> bool:
+        r"""Check if the sample format is unified across the dataset"""
+        # TODO
+        return True
 
     def _assign_txn(
         self, readonly: bool, dynamic: bool, to_process: bool
     ) -> Union[Tuple[lmdb.Environment, lmdb.Transaction], Tuple[None, None]]:
         if readonly:
             return self.raw_env, self.raw_txn
-        if not to_process:
+        if not to_process and not dynamic:
             env, txn = self.load(self.processed_fpath, write=False)
             return env, txn
         else:
-            self._data = self._process(self.processed_fpath)
+            self._data = self._process()
 
         if dynamic:
             return None, None
@@ -137,13 +149,13 @@ class LMDBDataset(Dataset, IFile):
             env, txn = self.load(self.processed_fpath, write=False)
             return env, txn
 
-    def _process(self, fpath: str) -> Dict[Hashable, Any]:
+    def _process(self) -> Dict[Hashable, Any]:
+        # TODO: Check sample format
         data = {}
-        env, txn = self.load(fpath, write=True, replace=True)
-        for idx in range(txn.cursor().count()):
-            sample = pickle.loads(txn.get(f"{idx}".encode()))
+        for idx in range(self.get_txn_len(self.raw_txn)):
+            sample = pickle.loads(self.raw_txn.get(f"{idx}".encode()))
             sample = self.process(sample)
-            data[f"{idx}".encode()] = sample
+            data[idx] = sample
         return data
 
     def _get_with_keys(
@@ -153,12 +165,11 @@ class LMDBDataset(Dataset, IFile):
         _sample: Optional[Dict[Hashable, Any]] = None,
     ):
         r"""Get the data with the given keys"""
+        # Working rely on a unified sample format
         if _sample is None:
             _sample = self.get_fn(idx)
 
-        if not self._check_has_key(key):
-            raise KeyError(f"Key {key} not found in the dataset")
-        elif not isinstance(key, tuple):
+        if not isinstance(key, tuple):
             return _sample[key]
         elif len(key) == 1:
             key = key[0]
@@ -166,7 +177,7 @@ class LMDBDataset(Dataset, IFile):
         else:
             key, *rest = key
             _sample = _sample[key]
-            return self._get_with_keys(rest, idx, _sample)
+            return self._get_with_keys(tuple(rest), idx, _sample)
 
     def process(self, sample: Dict[Hashable, Any]) -> Dict[Hashable, Any]:
         r"""Users override this method to achieve custom functionality"""
@@ -175,7 +186,7 @@ class LMDBDataset(Dataset, IFile):
     @lru_cache(maxsize=16)
     def _static_get(self, index):
         # TODO: maybe open for transformation plug-ins here or in `__getitem__`
-        return self.processed_txn.get(pickle.loads(f"{index}".encode()))
+        return pickle.loads(self.processed_txn.get(f"{index}".encode()))
 
     @lru_cache(maxsize=16)
     def _dynamic_get(self, index):
@@ -204,7 +215,6 @@ class LMDBDataset(Dataset, IFile):
         env = lmdb.open(
             fpath,
             subdir=False,
-            readonly=True,
             lock=False,
             readahead=False,
             meminit=False,
@@ -223,7 +233,7 @@ class LMDBDataset(Dataset, IFile):
         os.makedirs(fdir, exist_ok=True)
         _env, _txn = self.load(fpath, write=True)
         for key, value in self._data.items():
-            _txn.put(key, pickle.dumps(value, protocol=-1))
+            _txn.put(f"{key}".encode(), pickle.dumps(value, protocol=-1))
         _txn.commit()
         _env.close()
 
@@ -286,3 +296,4 @@ class LMDBDataset(Dataset, IFile):
     def split_with_condition(self):
         r"""This method can be currently implemented with `to_list` and `index_select`"""
         pass
+    

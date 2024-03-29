@@ -18,11 +18,6 @@ class IReader(ABC):
         raise NotImplementedError
 
 class ISaver(ABC):
-    @property
-    @abstractmethod
-    def _data(self):
-        raise NotImplementedError
-
     @abstractmethod
     def save(self, fpath: str):
         raise NotImplementedError
