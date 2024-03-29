@@ -127,7 +127,7 @@ class LMDBDataset(Dataset, IFile):
             sample = self.process(sample)
             data[f"{idx}".encode()] = sample
         return data
-
+    
     def process(self, sample: Dict[Hashable, Any]) -> Dict[Hashable, Any]:
         r"""Users override this method to achieve custom functionality"""
         return sample
@@ -156,6 +156,7 @@ class LMDBDataset(Dataset, IFile):
     def load(
         self, fpath: str, write: bool
     ) -> Tuple[lmdb.Environment, lmdb.Transaction]:
+        r"""Loading the data from the file path, and returning the environment and transaction object"""
         # ? Static for now
         env = lmdb.open(
             fpath,
