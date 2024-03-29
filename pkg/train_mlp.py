@@ -2,7 +2,7 @@
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
-from dataset import test_building_block_dataset
+from datasets import test_building_block_dataset
 from models import fingerprint_mlp
 from torch.utils.data import DataLoader, random_split
 from tqdm import tqdm

@@ -6,11 +6,13 @@ from functools import lru_cache
 from typing import Any, Dict, Hashable, Optional, Tuple, Union
 
 import lmdb
+import networkx as nx
 import numpy as np
 import torch
 from torch import Tensor
 from torch.utils.data import Dataset
-from utils.mixin import IArgParse, IFile
+
+from ..utils.mixin import IFile
 
 IndexType = Union[slice, Tensor, np.ndarray, Sequence]
 
@@ -38,16 +40,17 @@ class LMDBDataset(Dataset, IFile):
         self._indices: Optional[Sequence] = None
         self._data: Optional[Dict[Hashable, Dict[Hashable, Any]]] = None
 
+        to_process = False
         if not readonly:
             self.processed_dir = processed_dir
             self.processed_fname = processed_fname
             self.processed_fpath = os.path.join(
                 self.processed_dir, self.processed_fname
             )
-        to_process = forced_process or (
-            not self._check_processed(self.processed_fpath)
-            or not self._check_processed_complete(self.processed_fpath)
-        )
+            to_process = forced_process or (
+                not self._check_processed(self.processed_fpath)
+                or not self._check_processed_complete(self.processed_fpath)
+            )
         self.processed_env, self.processed_txn = self._assign_txn(
             readonly, dynamic, to_process
         )
@@ -62,11 +65,7 @@ class LMDBDataset(Dataset, IFile):
                 else (
                     self.processed_txn.cursor().count()
                     if not self.dynamic
-                    else (
-                        len(self._data)
-                        if not self.readonly
-                        else self.raw_txn.cursor().count()
-                    )
+                    else len(self._data)
                 )
             )
         return self._len
@@ -80,7 +79,7 @@ class LMDBDataset(Dataset, IFile):
             or (isinstance(idx, np.ndarray) and np.isscalar(idx))
         ):
 
-            data = self.get_fn(self.indices()[idx])
+            data = self.get_fn(self.indices[idx])
             return data
 
         else:
@@ -100,6 +99,25 @@ class LMDBDataset(Dataset, IFile):
         complete = txn.cursor().count() == self.raw_txn.cursor().count()
         env.close()
         return complete
+
+    def _check_has_key(
+        self,
+        key: Union[Hashable, Tuple[Hashable]],
+        _sample: Optional[Dict[Hashable, Any]] = None,
+    ) -> bool:
+        _sample = self.get_fn(0) if _sample is None else _sample
+        if not hasattr(_sample, "keys"):
+            return False
+        elif not isinstance(key, tuple):
+            return key in _sample.keys()
+        elif len(key) == 1:
+            key = key[0]
+            return key in _sample.keys()
+        else:
+            key, *rest = key
+            flag = key in _sample.keys()
+            _sample = _sample[key]
+            return flag and self._check_has_key(rest, _sample)
 
     def _assign_txn(
         self, readonly: bool, dynamic: bool, to_process: bool
@@ -121,13 +139,35 @@ class LMDBDataset(Dataset, IFile):
 
     def _process(self, fpath: str) -> Dict[Hashable, Any]:
         data = {}
-        env, txn = self.load(fpath, write=True)
+        env, txn = self.load(fpath, write=True, replace=True)
         for idx in range(txn.cursor().count()):
             sample = pickle.loads(txn.get(f"{idx}".encode()))
             sample = self.process(sample)
             data[f"{idx}".encode()] = sample
         return data
-    
+
+    def _get_with_keys(
+        self,
+        key: Union[Hashable, Tuple[Hashable]],
+        idx: int,
+        _sample: Optional[Dict[Hashable, Any]] = None,
+    ):
+        r"""Get the data with the given keys"""
+        if _sample is None:
+            _sample = self.get_fn(idx)
+
+        if not self._check_has_key(key):
+            raise KeyError(f"Key {key} not found in the dataset")
+        elif not isinstance(key, tuple):
+            return _sample[key]
+        elif len(key) == 1:
+            key = key[0]
+            return _sample[key]
+        else:
+            key, *rest = key
+            _sample = _sample[key]
+            return self._get_with_keys(rest, idx, _sample)
+
     def process(self, sample: Dict[Hashable, Any]) -> Dict[Hashable, Any]:
         r"""Users override this method to achieve custom functionality"""
         return sample
@@ -154,10 +194,13 @@ class LMDBDataset(Dataset, IFile):
         return range(len(self)) if self._indices is None else self._indices
 
     def load(
-        self, fpath: str, write: bool
+        self, fpath: str, write: bool, replace: bool = False
     ) -> Tuple[lmdb.Environment, lmdb.Transaction]:
         r"""Loading the data from the file path, and returning the environment and transaction object"""
         # ? Static for now
+        if replace and os.path.exists(fpath):
+            os.remove(fpath)
+
         env = lmdb.open(
             fpath,
             subdir=False,
@@ -233,3 +276,13 @@ class LMDBDataset(Dataset, IFile):
         perm = torch.randperm(len(self))
         dataset = self.index_select(perm)
         return (dataset, perm) if return_perm is True else dataset
+
+    def to_list(self, key: Union[Hashable, Tuple[Hashable]]) -> list:
+        r"""Convert the dataset to a list given a key"""
+        if not self._check_has_key(key):
+            raise KeyError(f"Key {key} not found in the dataset")
+        return [self._get_with_keys(key, idx) for idx in self.indices]
+
+    def split_with_condition(self):
+        r"""This method can be currently implemented with `to_list` and `index_select`"""
+        pass

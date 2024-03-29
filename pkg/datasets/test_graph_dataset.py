@@ -11,6 +11,8 @@ from rdkit.Chem import rdmolops
 from torch_geometric.data import Data, Dataset
 from tqdm import tqdm
 
+from .lmdb_dataset import LMDBDataset
+
 
 class GraphDataset(Dataset):
     def __init__(self, root="/data02/gtguo/DEL/data/dataset/acs.jcim.2c01608", transform=None, pre_transform=None):

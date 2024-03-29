@@ -1,15 +1,15 @@
-# %% imports
+import matplotlib.pyplot as plt
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
-from dataset import test_graph_dataset
+from datasets import test_graph_dataset
 from models import basic_gnn
+from scipy.stats import pearsonr
 from torch.utils.data import random_split
-from torch_geometric.data import DataLoader
+from torch_geometric.loader import DataLoader
 from tqdm import tqdm
 
 
-# %% learnable ZIP(Zero-Inflated Poisson) loss
 class ZIPLoss(nn.Module):
     def __init__(self, label_size: int = 6, target_size: int = 4, matrix_size: int = 2, eps: float = 1e-8):
         super(ZIPLoss, self).__init__()
@@ -63,59 +63,48 @@ class ZIPLoss(nn.Module):
         return loss
 
 
-# %% load data
-batch_size = 4096
+batch_size = 16
 dataset = test_graph_dataset.GraphDataset()
 train_size = int(0.8 * len(dataset))
 test_size = len(dataset) - train_size
-train_dataset, test_graph_dataset = random_split(dataset, [train_size, test_size])
+train_dataset, test = random_split(dataset, [train_size, test_size])
 train_loader = DataLoader(train_dataset, batch_size=batch_size, shuffle=True)
-test_loader = DataLoader(test_graph_dataset, batch_size=batch_size, shuffle=False)
+test_loader = DataLoader(test, batch_size=batch_size, shuffle=False)
 
-# %% train model
-device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
-print(device)
 # predict target and matrix mean
-model = basic_gnn.GNN(7, 2).to(device)
+model = basic_gnn.GNN(7, 2)
 
+# load model
+"""
+model.load_state_dict(torch.load(
+    "/data02/gtguo/model.pth"))
+"""
 
-# loss function
-criterion = ZIPLoss()
-optimizer = torch.optim.Adam(
-    list(model.parameters()) + list(criterion.parameters()), lr=0.01)
+# test on test set
+print("testing...")
+device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
+model = model.to(device)
+print(f"number of parameters: {sum(p.numel() for p in model.parameters())}")
+accordance_tensor = torch.tensor([[], []], dtype=torch.float)
+model.eval()
+with torch.no_grad():
+    for i, data in enumerate(test_loader):
+        y = data.y.view(-1 ,6)
+        y_tar, y_mat = y[:, :4].float(), y[:, 4:].float()
+        y_eff = (torch.mean(y_tar, dim=-1) - torch.mean(y_mat, dim=-1)).view(1, -1)
 
-# train
-epoch = 5
-for e in range(epoch):
-    model.train()
-    train_loss = 0
-    for data in tqdm(train_loader):
         data = data.to(device)
-        optimizer.zero_grad()
         out = model(data)
-        loss = criterion(data.y, out)
-        loss.backward()
-        optimizer.step()
-        train_loss += loss.item()
-        print(loss.item())
-        print(criterion.total_count, criterion.matrix_inflat_prob,
-              criterion.target_inflat_prob)
-    print(f"Epoch {e+1}, Train Loss: {train_loss / len(train_loader)}")
+        out = out.detach().cpu()[:, 0].view(1, -1)
+        
+        accordance_tensor = torch.cat((accordance_tensor, torch.cat((y_eff, out), dim=0)), dim=1)
 
-    model.eval()
-    test_loss = 0
-    with torch.no_grad():
-        for data in test_loader:
-            data = data.to(device)
-            out = model(data)
-            loss = criterion(data.y, out)
-            test_loss += loss.item()
-    print(f"Epoch {e+1}, Test Loss: {test_loss / len(test_loader)}")
+        if i >= 10:
+            break
 
-# print loss parameters
-print(criterion.total_count, criterion.matrix_inflat_prob,
-      criterion.target_inflat_prob)
-
-
-# %% save model
-torch.save(model.state_dict(), "model.pth")
+print("calculating pearson r...")
+print(pearsonr(accordance_tensor[0], accordance_tensor[1]))
+print("ploting...")
+plt.plot(accordance_tensor[0], accordance_tensor[1], ".")
+plt.savefig("corr_r.png")
+        
