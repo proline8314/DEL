@@ -1,9 +1,11 @@
 import copy
+import logging
 import os
 import pickle
 from collections.abc import Sequence
 from functools import lru_cache
-from typing import Any, Dict, Hashable, Optional, Tuple, Union
+from typing import (Any, Callable, Dict, Hashable, Literal, Optional, Tuple,
+                    Union)
 
 import lmdb
 import networkx as nx
@@ -11,6 +13,7 @@ import numpy as np
 import torch
 from torch import Tensor
 from torch.utils.data import Dataset
+from tqdm import tqdm
 
 from ..utils.mixin import IFile
 
@@ -18,26 +21,46 @@ IndexType = Union[slice, Tensor, np.ndarray, Sequence]
 
 
 class LMDBDataset(Dataset, IFile):
+    r"""A dataset that reads and writes lmdb files.
+    If `readonly` or `dynamic`, only raw file path is needed, elsewhere processed file path should also be assigned.
+    `forced_process` serves for the case when the processed file is expected to be updated.
+    """
+
+    # TODO : update file handling procedure according to the note
     def __init__(
         self,
-        raw_dir: str,
-        raw_fname: str,
+        *,
+        raw_dir: str = None,
+        raw_fname: str = None,
+        processed_dir: str = None,
+        processed_fname: str = None,
+        source_dataset: Dataset = None,
+        source: Literal["raw", "others"] = "raw",
         readonly: bool = False,
         dynamic: bool = False,
         forced_process: bool = False,
-        processed_dir: str = None,
-        processed_fname: str = None,
     ):
         super(LMDBDataset, self).__init__()
-        self.raw_dir = raw_dir
-        self.raw_fname = raw_fname
-        self.raw_fpath = os.path.join(self.raw_dir, self.raw_fname)
-        self.raw_env, self.raw_txn = self.load(self.raw_fpath, write=False)
 
-        self.readonly = readonly
-        self.dynamic = dynamic
         self._indices: Optional[Sequence] = None
         self._data: Optional[Dict[Hashable, Dict[Hashable, Any]]] = None
+
+        assert source in ("raw", "others")
+        self.source = source
+        self.readonly = readonly
+        self.dynamic = dynamic
+
+        if self.source == "raw":
+            self.raw_dir = raw_dir
+            self.raw_fname = raw_fname
+            self.raw_fpath = os.path.join(self.raw_dir, self.raw_fname)
+            self.raw_env, self.raw_txn = self.load(self.raw_fpath, write=False)
+        elif self.source == "others":
+            self.source_dataset = source_dataset
+        else:
+            raise ValueError(
+                f'The parameter `source` can only be "raw" or "others", but here it is "{source}".'
+            )
 
         to_process = False
         if not readonly and not dynamic:
@@ -56,7 +79,8 @@ class LMDBDataset(Dataset, IFile):
 
     def __len__(self) -> int:
         # TODO : reduce coupling
-        # !? This means that the dataset is not dynamic
+        # TODO refresh
+        # !? This means that the dataset is not free of adding new data
         if not hasattr(self, "_len"):
             if self._indices is not None:
                 self._len = len(self._indices)
@@ -84,11 +108,89 @@ class LMDBDataset(Dataset, IFile):
             return self.index_select(idx)
 
     def __del__(self):
-        self.raw_txn.abort()
-        self.raw_env.close()
-        if not self.dynamic:
+        if self.source == "raw":
+            self.raw_txn.abort()
+            self.raw_env.close()
+        if not self.dynamic and not self.readonly:
             self.processed_txn.abort()
             self.processed_env.close()
+
+    @classmethod
+    def readonly_raw(cls, raw_dir: str, raw_fname: str):
+        return cls(raw_dir=raw_dir, raw_fname=raw_fname, source="raw", readonly=True)
+
+    @classmethod
+    def override_raw(cls, raw_dir: str, raw_fname: str):
+        return cls(
+            raw_dir=raw_dir,
+            raw_fname=raw_fname,
+            processed_dir=raw_dir,
+            processed_fname=raw_fname,
+            source="raw",
+        )
+
+    @classmethod
+    def static_from_raw(
+        cls,
+        raw_dir: str,
+        raw_fname: str,
+        processed_dir: str,
+        processed_fname: str,
+        forced_process: bool,
+    ):
+        return cls(
+            raw_dir=raw_dir,
+            raw_fname=raw_fname,
+            processed_dir=processed_dir,
+            processed_fname=processed_fname,
+            source="raw",
+            forced_process=forced_process,
+        )
+
+    @classmethod
+    def dynamic_from_raw(
+        cls,
+        raw_dir: str,
+        raw_fname: str,
+    ):
+        return cls(
+            raw_dir=raw_dir,
+            raw_fname=raw_fname,
+            source="raw",
+            dynamic=True,
+        )
+
+    @classmethod
+    def static_from_others(
+        cls,
+        dataset: Dataset,
+        processed_dir: str,
+        processed_fname: str,
+        forced_process: bool,
+    ):
+        return cls(
+            source_dataset=dataset,
+            processed_dir=processed_dir,
+            processed_fname=processed_fname,
+            source="others",
+            forced_process=forced_process,
+        )
+
+    @classmethod
+    def dynamic_from_others(cls, dataset: Dataset):
+        return cls(
+            source_dataset=dataset,
+            source="others",
+            dynamic=True,
+        )
+    
+    @classmethod
+    def update_process_fn(cls, process_fn: Callable[[Dict[Hashable, Any]], Dict[Hashable, Any]]):
+        r"""Passing a static process function to the class"""
+        class NewCls(cls):
+            def process(self, sample: Dict[Hashable, Any]) -> Dict[Hashable, Any]:
+                return process_fn(sample)
+        return NewCls
 
     @staticmethod
     def get_txn_len(txn: lmdb.Transaction) -> int:
@@ -125,7 +227,7 @@ class LMDBDataset(Dataset, IFile):
             flag = key in _sample.keys()
             _sample = _sample[key]
             return flag and self._check_has_key(tuple(rest), _sample)
-        
+
     def _check_sample_format_unified(self) -> bool:
         r"""Check if the sample format is unified across the dataset"""
         # TODO
@@ -139,8 +241,10 @@ class LMDBDataset(Dataset, IFile):
         if not to_process and not dynamic:
             env, txn = self.load(self.processed_fpath, write=False)
             return env, txn
+        elif self.source == "raw":
+            self._data = self._process_raw()
         else:
-            self._data = self._process()
+            self._data = self._process_others()
 
         if dynamic:
             return None, None
@@ -149,14 +253,29 @@ class LMDBDataset(Dataset, IFile):
             env, txn = self.load(self.processed_fpath, write=False)
             return env, txn
 
-    def _process(self) -> Dict[Hashable, Any]:
+    def _process_raw(self) -> Dict[Hashable, Any]:
         # TODO: Check sample format
+        # TODO for 2 _process: allow for None output
         data = {}
-        for idx in range(self.get_txn_len(self.raw_txn)):
+        logging.info("processing dataset...")
+        for idx in tqdm(range(self.get_txn_len(self.raw_txn))):
             sample = pickle.loads(self.raw_txn.get(f"{idx}".encode()))
             sample = self.process(sample)
             data[idx] = sample
         return data
+
+    def _process_others(self) -> Dict[Hashable, Any]:
+        data = {}
+        logging.info("processing dataset...")
+        for idx in tqdm(range(len(self.source_dataset))):
+            sample = self.source_dataset[idx]
+            sample = self.process(sample)
+            data[idx] = sample
+        return data
+
+    def process(self, sample: Dict[Hashable, Any]) -> Dict[Hashable, Any]:
+        r"""Users override this method to achieve custom functionality"""
+        return sample
 
     def _get_with_keys(
         self,
@@ -179,10 +298,6 @@ class LMDBDataset(Dataset, IFile):
             _sample = _sample[key]
             return self._get_with_keys(tuple(rest), idx, _sample)
 
-    def process(self, sample: Dict[Hashable, Any]) -> Dict[Hashable, Any]:
-        r"""Users override this method to achieve custom functionality"""
-        return sample
-
     @lru_cache(maxsize=16)
     def _static_get(self, index):
         # TODO: maybe open for transformation plug-ins here or in `__getitem__`
@@ -194,6 +309,7 @@ class LMDBDataset(Dataset, IFile):
 
     @property
     def get_fn(self) -> Any:
+        # TODO refresh
         if not hasattr(self, "_cached_get_fn"):
             self._cached_get_fn = (
                 self._dynamic_get if self.dynamic else self._static_get
@@ -296,4 +412,3 @@ class LMDBDataset(Dataset, IFile):
     def split_with_condition(self):
         r"""This method can be currently implemented with `to_list` and `index_select`"""
         pass
-    

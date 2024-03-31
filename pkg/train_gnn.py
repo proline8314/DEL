@@ -5,7 +5,7 @@ import torch.nn.functional as F
 from datasets import test_graph_dataset
 from models import basic_gnn
 from torch.utils.data import random_split
-from torch_geometric.data import DataLoader
+from torch_geometric.loader import DataLoader
 from tqdm import tqdm
 
 
