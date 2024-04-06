@@ -1,5 +1,7 @@
 from typing import List, Optional, Tuple
 
+import networkx as nx
+import numpy as np
 import rdkit
 import torch
 from rdkit import Chem
@@ -33,7 +35,32 @@ def get_node_features(mol: Chem.Mol, *, atom_type_list: Optional[List["str"]] = 
         node_feature.append(atom.GetFormalCharge())
         node_feature.append(int(atom.IsInRing()))
         node_features.append(node_feature)
+    node_features = np.asarray(node_features)
     return torch.tensor(node_features, dtype=torch.float)
 
+def get_edge_features(mol: Chem.Mol) -> torch.Tensor:
+    all_edge_feature = []
+    for bond in mol.GetBonds():
+        edge_feature = []
+        edge_feature.append(bond.GetBondTypeAsDouble())
+        edge_feature.append(bond.IsInRing())
+        all_edge_feature.append(edge_feature)
+
+    all_edge_feature = np.asarray(all_edge_feature)
+    return torch.tensor(all_edge_feature, dtype=torch.float)
+
+def get_edge_index(mol: Chem.Mol) -> torch.Tensor:
+    adj_matrix = rdmolops.GetAdjacencyMatrix(mol)
+    row, col = np.where(adj_matrix)
+    coo = np.array(list(zip(row, col)))
+    coo = np.reshape(coo, (2, -1))
+    return torch.tensor(coo, dtype=torch.long)
+
+def get_mol_graph_attr(mol: Chem.Mol, mol_graph: nx.Graph, key: str) -> torch.Tensor:
+    feat = []
+    for atom in mol.GetAtoms():
+        idx = atom.GetIdx()
+        feat.append(float(mol_graph.nodes[idx][key]))
+    return torch.tensor(feat, dtype=torch.float)
 
     

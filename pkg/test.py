@@ -63,48 +63,61 @@ class ZIPLoss(nn.Module):
         return loss
 
 
-batch_size = 16
+batch_size = 4096
 dataset = test_graph_dataset.GraphDataset()
+"""
 train_size = int(0.8 * len(dataset))
 test_size = len(dataset) - train_size
 train_dataset, test = random_split(dataset, [train_size, test_size])
 train_loader = DataLoader(train_dataset, batch_size=batch_size, shuffle=True)
 test_loader = DataLoader(test, batch_size=batch_size, shuffle=False)
+"""
+loader = DataLoader(dataset, batch_size=batch_size, shuffle=False)
 
 # predict target and matrix mean
 model = basic_gnn.GNN(7, 2)
 
 # load model
-"""
+
 model.load_state_dict(torch.load(
     "/data02/gtguo/model.pth"))
-"""
+
 
 # test on test set
 print("testing...")
 device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 model = model.to(device)
 print(f"number of parameters: {sum(p.numel() for p in model.parameters())}")
-accordance_tensor = torch.tensor([[], []], dtype=torch.float)
+accordance_tensor = torch.tensor([], dtype=torch.float)
 model.eval()
 with torch.no_grad():
-    for i, data in enumerate(test_loader):
+    for i, data in enumerate(loader):
+        """
         y = data.y.view(-1 ,6)
         y_tar, y_mat = y[:, :4].float(), y[:, 4:].float()
-        y_eff = (torch.mean(y_tar, dim=-1) - torch.mean(y_mat, dim=-1)).view(1, -1)
-
+        y_eff = ((torch.mean(y_tar, dim=-1) + 1) - (torch.mean(y_mat, dim=-1) + 1)).view(1, -1)
+        """
         data = data.to(device)
         out = model(data)
-        out = out.detach().cpu()[:, 0].view(1, -1)
+        out = out.detach().cpu()[:, 0].view(-1)
         
-        accordance_tensor = torch.cat((accordance_tensor, torch.cat((y_eff, out), dim=0)), dim=1)
+        accordance_tensor = torch.cat((accordance_tensor, out))
+        print(len(accordance_tensor))
 
-        if i >= 10:
+        if i >= 5:
             break
+idx_tensor = torch.tensor(range(len(accordance_tensor)), dtype=torch.float)
+hit_tensor = torch.zeros_like(idx_tensor)
+hit_tensor[(idx_tensor + 1) % 119 == 0] = 1
+num_hit = hit_tensor.sum()
+min_act = accordance_tensor[hit_tensor == 1].min()
+num_false_hit = (accordance_tensor > min_act).sum() - num_hit
+print(f"num_hit: {num_hit}, num_false_hit: {num_false_hit}")
 
+"""
 print("calculating pearson r...")
 print(pearsonr(accordance_tensor[0], accordance_tensor[1]))
 print("ploting...")
 plt.plot(accordance_tensor[0], accordance_tensor[1], ".")
 plt.savefig("corr_r.png")
-        
+"""

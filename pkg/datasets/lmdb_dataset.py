@@ -43,7 +43,7 @@ class LMDBDataset(Dataset, IFile):
         super(LMDBDataset, self).__init__()
 
         self._indices: Optional[Sequence] = None
-        self._data: Optional[Dict[Hashable, Dict[Hashable, Any]]] = None
+        self._data: Optional[Dict[Hashable, Any]] = None
 
         assert source in ("raw", "others")
         self.source = source
@@ -108,6 +108,14 @@ class LMDBDataset(Dataset, IFile):
             return self.index_select(idx)
 
     def __del__(self):
+        # TODO following bug
+        """
+        Exception ignored in: <function LMDBDataset.__del__ at 0x7f36fec928c0>
+        Traceback (most recent call last):
+          File "/data02/gtguo/DEL/pkg/datasets/lmdb_dataset.py", line 111, in __del__
+            if self.source == "raw":
+        AttributeError: 'ChemBLActivityDataset' object has no attribute 'source'
+        """
         if self.source == "raw":
             self.raw_txn.abort()
             self.raw_env.close()
@@ -127,6 +135,7 @@ class LMDBDataset(Dataset, IFile):
             processed_dir=raw_dir,
             processed_fname=raw_fname,
             source="raw",
+            forced_process = True,
         )
 
     @classmethod
@@ -136,7 +145,7 @@ class LMDBDataset(Dataset, IFile):
         raw_fname: str,
         processed_dir: str,
         processed_fname: str,
-        forced_process: bool,
+        forced_process: bool = False,
     ):
         return cls(
             raw_dir=raw_dir,
@@ -166,7 +175,7 @@ class LMDBDataset(Dataset, IFile):
         dataset: Dataset,
         processed_dir: str,
         processed_fname: str,
-        forced_process: bool,
+        forced_process: bool = False,
     ):
         return cls(
             source_dataset=dataset,
@@ -183,13 +192,17 @@ class LMDBDataset(Dataset, IFile):
             source="others",
             dynamic=True,
         )
-    
+
     @classmethod
-    def update_process_fn(cls, process_fn: Callable[[Dict[Hashable, Any]], Dict[Hashable, Any]]):
+    def update_process_fn(
+        cls, process_fn: Callable[[Dict[Hashable, Any]], Dict[Hashable, Any]]
+    ):
         r"""Passing a static process function to the class"""
+
         class NewCls(cls):
             def process(self, sample: Dict[Hashable, Any]) -> Dict[Hashable, Any]:
                 return process_fn(sample)
+
         return NewCls
 
     @staticmethod
@@ -236,6 +249,7 @@ class LMDBDataset(Dataset, IFile):
     def _assign_txn(
         self, readonly: bool, dynamic: bool, to_process: bool
     ) -> Union[Tuple[lmdb.Environment, lmdb.Transaction], Tuple[None, None]]:
+        # TODO async handling & saving
         if readonly:
             return self.raw_env, self.raw_txn
         if not to_process and not dynamic:
@@ -251,11 +265,13 @@ class LMDBDataset(Dataset, IFile):
         else:
             self.save(self.processed_fpath)
             env, txn = self.load(self.processed_fpath, write=False)
+            self._data = None   # release mem
             return env, txn
 
     def _process_raw(self) -> Dict[Hashable, Any]:
         # TODO: Check sample format
         # TODO for 2 _process: allow for None output
+        # TODO: multiprocessing
         data = {}
         logging.info("processing dataset...")
         for idx in tqdm(range(self.get_txn_len(self.raw_txn))):
@@ -273,7 +289,7 @@ class LMDBDataset(Dataset, IFile):
             data[idx] = sample
         return data
 
-    def process(self, sample: Dict[Hashable, Any]) -> Dict[Hashable, Any]:
+    def process(self, sample: Dict[Hashable, Any]) -> Any:
         r"""Users override this method to achieve custom functionality"""
         return sample
 
@@ -408,6 +424,10 @@ class LMDBDataset(Dataset, IFile):
         if not self._check_has_key(key):
             raise KeyError(f"Key {key} not found in the dataset")
         return [self._get_with_keys(key, idx) for idx in self.indices]
+
+    def to_array(self, key: Union[Hashable, Tuple[Hashable]]) -> np.ndarray:
+        r"""Convert the dataset to a numpy array given a key"""
+        return np.array(self.to_list(key))
 
     def split_with_condition(self):
         r"""This method can be currently implemented with `to_list` and `index_select`"""

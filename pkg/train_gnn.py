@@ -85,7 +85,7 @@ optimizer = torch.optim.Adam(
     list(model.parameters()) + list(criterion.parameters()), lr=0.01)
 
 # train
-epoch = 5
+epoch = 20
 for e in range(epoch):
     model.train()
     train_loss = 0
@@ -97,9 +97,6 @@ for e in range(epoch):
         loss.backward()
         optimizer.step()
         train_loss += loss.item()
-        print(loss.item())
-        print(criterion.total_count, criterion.matrix_inflat_prob,
-              criterion.target_inflat_prob)
     print(f"Epoch {e+1}, Train Loss: {train_loss / len(train_loader)}")
 
     model.eval()
@@ -111,6 +108,7 @@ for e in range(epoch):
             loss = criterion(data.y, out)
             test_loss += loss.item()
     print(f"Epoch {e+1}, Test Loss: {test_loss / len(test_loader)}")
+    torch.save(model.state_dict(), "model.pth")
 
 # print loss parameters
 print(criterion.total_count, criterion.matrix_inflat_prob,
@@ -118,4 +116,4 @@ print(criterion.total_count, criterion.matrix_inflat_prob,
 
 
 # %% save model
-torch.save(model.state_dict(), "model.pth")
+
