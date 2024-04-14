@@ -21,7 +21,12 @@ DATABASE_PATH = "/data02/gtguo/data/chembl_33/chembl_33_sqlite/chembl_33.db"
 CHEMBL_ID_NAME_DICT = {
     "CHEMBL612545": "Horseradish peroxidase"
 }
+FULL_NAME_DICT = {
+    "ca9": "Carbonic anhydrase IX",
+    "hrp": "Horseradish peroxidase",
+}
 
+# ! TODO: readonly mode (block _process by alternative __init__ method?)
 
 class ChemBLActivityDataset(LMDBDataset):
     def __init__(self, target_name: str = "Carbonic anhydrase IX", update_target: bool = True, *, target_chembl_id: str = None):

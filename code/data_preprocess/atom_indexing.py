@@ -224,6 +224,7 @@ def match_motif_to_mol(mol: nx.Graph, bb_motif_dict: dict[str, nx.Graph]) -> nx.
             motif_to_be_assigned = passed_motif_list[0]
         else:
             # ?! a single unmatched ring could escape from the above logic
+            # ! fix this for downstream processing
             # pick a big number (> num of bb) to avoid transferring to another atoms
             motif_to_be_assigned = 10
             warn(

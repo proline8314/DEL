@@ -1,4 +1,5 @@
 import os
+import sys
 from functools import lru_cache
 
 import numpy as np
@@ -8,8 +9,10 @@ from rdkit.Chem import rdFingerprintGenerator
 from rdkit.Chem.SaltRemover import SaltRemover
 from torch_geometric.data import Data
 
-from ..utils.mol_feat import (get_edge_features, get_edge_index,
-                              get_mol_graph_attr, get_node_features)
+sys.path.append("/data02/gtguo/DEL/pkg")
+from utils.mol_feat import (get_edge_features, get_edge_index,
+                            get_mol_graph_attr, get_node_features)
+
 from .lmdb_dataset import LMDBDataset
 
 DATASET_DIR = "/data02/gtguo/DEL/data/dataset/acs.jcim.2c01608"
@@ -18,7 +21,7 @@ PROCESSED_FILE_NAME = "graph_dataset.lmdb"
 
 
 class GraphDataset(LMDBDataset):
-    # TODO : take survey in pyg dataloader to support for heterogeneous dict dataset
+    # TODO (done): take survey in pyg dataloader to support for heterogeneous dict dataset
     def __init__(
         self,
         forced_reload: bool = False,
@@ -27,6 +30,16 @@ class GraphDataset(LMDBDataset):
         fpsize: int = 2048,
     ):
         # TODO : support for different raw datasets
+        assert target_name in ("ca9", "hrp")
+        self.target_name = target_name
+        self.mfpgen = rdFingerprintGenerator.GetMorganGenerator(
+            radius=fpr, fpSize=fpsize
+        )
+        self.salt_remover = SaltRemover()
+
+        DATASET_DIR = "/data02/gtguo/DEL/data/dataset/acs.jcim.2c01608"
+        RAW_FILE_NAME = "features.lmdb"
+        PROCESSED_FILE_NAME = "graph_dataset.lmdb"
         super(GraphDataset, self).__init__(
             raw_dir=DATASET_DIR,
             raw_fname=RAW_FILE_NAME,
@@ -34,12 +47,6 @@ class GraphDataset(LMDBDataset):
             processed_fname=PROCESSED_FILE_NAME,
             forced_process=forced_reload,
         )
-        assert target_name in ("ca9", "hrp")
-        self.target_name = target_name
-        self.mfpgen = rdFingerprintGenerator.GetMorganGenerator(
-            radius=fpr, fpsize=fpsize
-        )
-        self.salt_remover = SaltRemover()
 
     @lru_cache(maxsize=16)
     def get_fingerprint(self, smiles: str) -> torch.Tensor:
@@ -47,7 +54,7 @@ class GraphDataset(LMDBDataset):
             smiles = ""
         mol = Chem.MolFromSmiles(smiles)
         mol = self.salt_remover.StripMol(mol)
-        fp = self.mfpgen.GetFingerprint(mol)
+        fp = np.array(self.mfpgen.GetFingerprint(mol), dtype=float)
         return fp
 
     def process(self, sample):
@@ -62,13 +69,11 @@ class GraphDataset(LMDBDataset):
         edge_index = get_edge_index(mol)
         node_bbidx = get_mol_graph_attr(mol, mol_graph, "motif")
         node_dist = get_mol_graph_attr(mol, mol_graph, "topo_dist")
-        bbfp = torch.Tensor(
-            np.asarray(
-                [self.get_fingerprint(smiles) for smiles in bbsmiles_list],
-                dtype=np.int64,
-            ),
-            dtype=torch.float,
-        )
+        bbfp = np.array([self.get_fingerprint(smiles) for smiles in bbsmiles_list])
+        bbfp = torch.tensor(bbfp, dtype=torch.float)
+
+        # * Unstable: append topological info to node_feats
+        node_features = torch.cat((node_features, node_bbidx.view(-1, 1), node_dist.view(-1, 1)), dim=1)
 
         data = Data(x=node_features, edge_index=edge_index, edge_attr=edge_features)
         data.y_matrix = y_matrix

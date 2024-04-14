@@ -5,6 +5,7 @@ import torch.nn.functional as F
 from datasets import test_graph_dataset
 from models import basic_gnn
 from scipy.stats import pearsonr
+from sklearn.metrics import precision_recall_curve, roc_auc_score
 from torch.utils.data import random_split
 from torch_geometric.loader import DataLoader
 from tqdm import tqdm
@@ -109,11 +110,17 @@ with torch.no_grad():
 idx_tensor = torch.tensor(range(len(accordance_tensor)), dtype=torch.float)
 hit_tensor = torch.zeros_like(idx_tensor)
 hit_tensor[(idx_tensor + 1) % 119 == 0] = 1
-num_hit = hit_tensor.sum()
-min_act = accordance_tensor[hit_tensor == 1].min()
-num_false_hit = (accordance_tensor > min_act).sum() - num_hit
-print(f"num_hit: {num_hit}, num_false_hit: {num_false_hit}")
+hit_2_tensor = torch.zeros_like(idx_tensor)
+hit_2_tensor[(idx_tensor + 1) % 119 == 29] = 1
 
+accordance_tensor = torch.sigmoid(accordance_tensor)
+hit_accordance_tensor = accordance_tensor[torch.logical_or(hit_tensor == 1, hit_2_tensor == 1)]
+better_hit_tensor = hit_tensor[torch.logical_or(hit_tensor == 1, hit_2_tensor == 1)]
+
+# print(precision_recall_curve(hit_tensor, accordance_tensor))
+print(roc_auc_score(hit_tensor, accordance_tensor))
+print(roc_auc_score(hit_2_tensor, accordance_tensor))
+print(roc_auc_score(better_hit_tensor, hit_accordance_tensor))
 """
 print("calculating pearson r...")
 print(pearsonr(accordance_tensor[0], accordance_tensor[1]))

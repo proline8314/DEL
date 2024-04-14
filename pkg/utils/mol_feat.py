@@ -45,16 +45,24 @@ def get_edge_features(mol: Chem.Mol) -> torch.Tensor:
         edge_feature.append(bond.GetBondTypeAsDouble())
         edge_feature.append(bond.IsInRing())
         all_edge_feature.append(edge_feature)
+        all_edge_feature.append(edge_feature)
 
     all_edge_feature = np.asarray(all_edge_feature)
     return torch.tensor(all_edge_feature, dtype=torch.float)
 
 def get_edge_index(mol: Chem.Mol) -> torch.Tensor:
+    """
     adj_matrix = rdmolops.GetAdjacencyMatrix(mol)
     row, col = np.where(adj_matrix)
     coo = np.array(list(zip(row, col)))
     coo = np.reshape(coo, (2, -1))
-    return torch.tensor(coo, dtype=torch.long)
+    """
+    coo = []
+    for bond in mol.GetBonds():
+        start, end = bond.GetBeginAtomIdx(), bond.GetEndAtomIdx()
+        coo.append([start, end])
+        coo.append([end, start])
+    return torch.tensor(coo, dtype=torch.long).T
 
 def get_mol_graph_attr(mol: Chem.Mol, mol_graph: nx.Graph, key: str) -> torch.Tensor:
     feat = []

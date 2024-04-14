@@ -2,10 +2,11 @@ import copy
 import logging
 import os
 import pickle
+import sys
 from collections.abc import Sequence
 from functools import lru_cache
-from typing import (Any, Callable, Dict, Hashable, Literal, Optional, Tuple,
-                    Union)
+from typing import (Any, Callable, Dict, Hashable, Literal, NewType, Optional,
+                    Tuple, Union)
 
 import lmdb
 import networkx as nx
@@ -14,10 +15,10 @@ import torch
 from torch import Tensor
 from torch.utils.data import Dataset
 from tqdm import tqdm
-
-from ..utils.mixin import IFile
+from utils.mixin import IFile
 
 IndexType = Union[slice, Tensor, np.ndarray, Sequence]
+Keys = Union[Hashable, Tuple[Hashable]]
 
 
 class LMDBDataset(Dataset, IFile):
@@ -135,7 +136,7 @@ class LMDBDataset(Dataset, IFile):
             processed_dir=raw_dir,
             processed_fname=raw_fname,
             source="raw",
-            forced_process = True,
+            forced_process=True,
         )
 
     @classmethod
@@ -265,12 +266,12 @@ class LMDBDataset(Dataset, IFile):
         else:
             self.save(self.processed_fpath)
             env, txn = self.load(self.processed_fpath, write=False)
-            self._data = None   # release mem
+            self._data = None  # release mem
             return env, txn
 
     def _process_raw(self) -> Dict[Hashable, Any]:
         # TODO: Check sample format
-        # TODO for 2 _process: allow for None output
+        # TODO for 2 _process: allow for None output (or other placeholder representing for skipping the sample)
         # TODO: multiprocessing
         data = {}
         logging.info("processing dataset...")
@@ -409,6 +410,7 @@ class LMDBDataset(Dataset, IFile):
 
         dataset = copy.copy(self)
         dataset._indices = indices
+        dataset._len = len(indices)
         return dataset
 
     def shuffle(
@@ -429,6 +431,53 @@ class LMDBDataset(Dataset, IFile):
         r"""Convert the dataset to a numpy array given a key"""
         return np.array(self.to_list(key))
 
-    def split_with_condition(self):
-        r"""This method can be currently implemented with `to_list` and `index_select`"""
-        pass
+    def split_with_condition(
+        self,
+        condition: Callable[[Dict[Hashable, Any]], bool],
+        argument: Tuple[Keys],
+        save: bool = False,
+        load: bool = False,
+        *,
+        true_dataset_name: str = None,
+        false_dataset_name: str = None,
+        **kwargs,
+    ) -> Tuple["Dataset", "Dataset"]:
+        r"""Split the dataset based on the condition"""
+        # TODO (maybe): support multiple conditions
+        # TODO: clean up with dataset name part
+        if (
+            load
+            and os.path.exists(
+                os.path.join(self.processed_dir, f"{true_dataset_name}.lmdb")
+            )
+            and os.path.exists(
+                os.path.join(self.processed_dir, f"{false_dataset_name}.lmdb")
+            )
+        ):
+            true_dataset = LMDBDataset.readonly_raw(
+                self.processed_dir, f"{true_dataset_name}.lmdb"
+            )
+            false_dataset = LMDBDataset.readonly_raw(
+                self.processed_dir, f"{false_dataset_name}.lmdb"
+            )
+            return true_dataset, false_dataset
+
+        # TODO: test with numpy array method
+        true_indices = []
+        false_indices = []
+        for idx in tqdm(self.indices, desc="Splitting dataset"):
+            args = [self._get_with_keys(key, idx) for key in argument]
+            if condition(*args, **kwargs):
+                true_indices.append(idx)
+            else:
+                false_indices.append(idx)
+        true_dataset = self.index_select(true_indices)
+        false_dataset = self.index_select(false_indices)
+        if save:
+            true_dataset.save(
+                os.path.join(self.processed_dir, f"{true_dataset_name}.lmdb")
+            )
+            false_dataset.save(
+                os.path.join(self.processed_dir, f"{false_dataset_name}.lmdb")
+            )
+        return true_dataset, false_dataset
