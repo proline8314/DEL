@@ -205,10 +205,24 @@ class LMDBDataset(Dataset, IFile):
                 return process_fn(sample)
 
         return NewCls
+    
+    @classmethod
+    def append_process_fn(cls, process_fn: Callable[[Any], Any]):
+        r"""Appending a process function to the class"""
+        # TODO: ! test
+        old_process_fn = cls.process
+        class NewCls(cls):
+            def process(self, sample: Any) -> Any:
+                return process_fn(old_process_fn(self, sample))
+        return NewCls
 
     @staticmethod
     def get_txn_len(txn: lmdb.Transaction) -> int:
         return len(list(txn.cursor().iternext(values=False)))
+    
+    def _check_meta_info(self):
+        # TODO: use meta info to check the validity of the dataset, reload if not valid
+        return True
 
     def _check_processed(self, fpath: str):
         return os.path.exists(fpath)
@@ -359,7 +373,7 @@ class LMDBDataset(Dataset, IFile):
 
     def save(self, fpath: str) -> None:
         r"""Saving the data stored by the class"""
-        if not hasattr(self, "_data"):
+        if not hasattr(self, "_data") or self._data is None:
             raise AttributeError("No data to save")
 
         fdir, _ = os.path.split(fpath)
@@ -442,9 +456,20 @@ class LMDBDataset(Dataset, IFile):
         false_dataset_name: str = None,
         **kwargs,
     ) -> Tuple["Dataset", "Dataset"]:
-        r"""Split the dataset based on the condition"""
+        r"""
+        Split the dataset based on the condition.
+        
+        Example:
+        ```
+        def condition(label):
+            return label == 1
+        true_dataset, false_dataset = dataset.split_with_condition(condition, ("label",), save=True)
+        ```python
+
+        """
         # TODO (maybe): support multiple conditions
         # TODO: clean up with dataset name part
+        # TODO: sample itself? more types of input?
         if (
             load
             and os.path.exists(
@@ -463,6 +488,7 @@ class LMDBDataset(Dataset, IFile):
             return true_dataset, false_dataset
 
         # TODO: test with numpy array method
+        # ! save and load error
         true_indices = []
         false_indices = []
         for idx in tqdm(self.indices, desc="Splitting dataset"):

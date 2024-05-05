@@ -1,4 +1,4 @@
-from typing import List, Optional, Tuple
+from typing import List, Optional, Tuple, Union
 
 import networkx as nx
 import numpy as np
@@ -6,6 +6,8 @@ import rdkit
 import torch
 from rdkit import Chem
 from rdkit.Chem import rdmolops
+from rdkit.Chem.SaltRemover import SaltRemover
+from torch_geometric.data import Data
 
 
 def get_node_features(mol: Chem.Mol, *, atom_type_list: Optional[List["str"]] = None) -> torch.Tensor:
@@ -71,4 +73,17 @@ def get_mol_graph_attr(mol: Chem.Mol, mol_graph: nx.Graph, key: str) -> torch.Te
         feat.append(float(mol_graph.nodes[idx][key]))
     return torch.tensor(feat, dtype=torch.float)
 
+def process_to_pyg_data(data: Union[Chem.Mol, str], *, atom_type_list: Optional[List[str]] = None) -> Data:
+    if isinstance(data, Chem.Mol):
+        mol = data
+    elif isinstance(data, str):
+        mol = Chem.MolFromSmiles(data)
+    else:
+        mol = Chem.MolFromSmiles("")
+    assert mol is not None, "Failed to parse the input data"
+    mol = SaltRemover().StripMol(mol)
+    node_features = get_node_features(mol, atom_type_list=atom_type_list)
+    edge_features = get_edge_features(mol)
+    edge_index = get_edge_index(mol)
+    return Data(x=node_features, edge_attr=edge_features, edge_index=edge_index)
     

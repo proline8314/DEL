@@ -49,6 +49,7 @@ class DELRefEncoder(nn.Module):
             ]
         )
         if with_fp:
+            self.fp_size = fp_size
             self.fp_embedding_layer = Linear(fp_size, fp_embedding_size)
             self.fp_enc_layers = nn.ModuleList(
                 [
@@ -62,7 +63,7 @@ class DELRefEncoder(nn.Module):
             self.fp_to_gat_feedback = nn.ModuleList(
                 [self._get_feedback_layer(fp_to_gat_feedback) for _ in range(n_layers)]
             )
-            self.feedback_fn = self.cal_feedback_add
+            self.feedback_fn = self._get_feedback_fn(fp_to_gat_feedback)
             self.gat_to_fp_pooling = gat_to_fp_pooling
 
     def forward(self, node_feat, edge_idx, edge_feat, bb_idx, batch, mol_fp=None):
@@ -71,6 +72,9 @@ class DELRefEncoder(nn.Module):
         edge_vec = self.edge_embedding_layer(edge_feat)
         fp_vec = None
         if self.with_fp:
+            # mol_fp: (batch_size, bb_num, fp_original_size), make sure fp_size is a divisor of fp_original_size
+            mol_fp = mol_fp.view(*mol_fp.shape[:-1], self.fp_size, mol_fp.shape[-1] // self.fp_size).sum(dim=-1)
+            # mol_fp: (batch_size, bb_num, fp_size)
             fp_vec = self.fp_embedding_layer(mol_fp)
         # forward
         for i in range(self.n_layers):
@@ -94,8 +98,7 @@ class DELRefEncoder(nn.Module):
 
     def _get_feedback_layer(self, layer_type: Literal["none", "add", "gate"]):
         if layer_type == "none":
-            # ! identity layer?
-            return lambda node_vec, *args: node_vec
+            return Identity()
         elif layer_type == "add":
             return Sequential(
                 Linear(self.fp_embedding_size, self.node_embedding_size),
@@ -109,6 +112,17 @@ class DELRefEncoder(nn.Module):
             """
         else:
             raise ValueError(f"Invalid feedback layer type: {layer_type}")
+        
+    def _get_feedback_fn(self, feedback_fn: Literal["none", "add", "gate"]):
+        if feedback_fn == "none":
+            return self.cal_feedback_none
+        elif feedback_fn == "add":
+            return self.cal_feedback_add
+        else:
+            raise ValueError(f"Invalid feedback function: {feedback_fn}")
+        
+    def cal_feedback_none(self, layer, node_vec, fp_vec, bb_idx, batch):
+        return node_vec
 
     def cal_feedback_add(self, layer, node_vec, fp_vec, bb_idx, batch):
         bb_idx = bb_idx.type(torch.int64)
@@ -123,9 +137,13 @@ class DELRefEncoder(nn.Module):
 
         fp_vec = fp_vec.view(-1, fp_emb_size)
         fp_2_node_vec = layer(fp_vec)
+        """
         node_vec = node_vec + torch.stack(
             [fp_2_node_vec[idx[i]] for i in range(num_node)]
         )
+        """
+        node_vec = node_vec + fp_2_node_vec[idx]
+        node_vec[node_vec.isnan()] = 0.0
         return node_vec
 
     def _pooling_with_bb_idx(self, hidden, bb_idx, batch, pooling="mean"):
@@ -146,12 +164,18 @@ class DELRefEncoder(nn.Module):
         idx = batch * num_bb + bb_idx - 1
         idx_len = btz * num_bb
 
+        """
         if pooling == "mean":
             hidden = torch.stack([hidden[idx == i].mean(dim=0) for i in range(idx_len)])
         elif pooling == "max":
             hidden = torch.stack(
                 [hidden[idx == i].max(dim=0).values for i in range(idx_len)]
             )
+        """
+        if pooling == "mean":
+            hidden = gap(hidden, idx, idx_len)
+        elif pooling == "max":
+            hidden = gmp(hidden, idx, idx_len)
         hidden = hidden.view(btz, num_bb, emb_size)
         hidden[hidden.isnan()] = 0.0
         return hidden
@@ -167,6 +191,7 @@ class DELRefDecoder(nn.Module):
         output_size:int, 
         output_activation=None,
         with_fp: bool = True,
+        with_dist: bool = True,
     ):
         super().__init__()
         self.n_in = node_input_size
@@ -181,6 +206,7 @@ class DELRefDecoder(nn.Module):
             else output_activation
         )
         self.with_fp = with_fp
+        self.with_dist = with_dist
 
         self.n_dec = self._get_node_decoder()
         self.dfl = self._get_dist_feature_layer()
@@ -189,7 +215,10 @@ class DELRefDecoder(nn.Module):
 
     def forward(self, node_vec, fp_vec, dist_vec, batch):
         # broadcast dist_vec to the same shape as node_vec
-        score = self.n_dec(node_vec) * self.dfl(dist_vec.view(-1, 1))
+        if self.with_dist:
+            score = self.n_dec(node_vec) * self.dfl(dist_vec.view(-1, 1))
+        else:
+            score = self.n_dec(node_vec)
         # average over batch
         score = gap(score, batch)
         score = self.score_head(score)
@@ -404,7 +433,7 @@ class RegressionHead(torch.nn.Module):
 
     def forward(self, x):
         x = self.lin1(x)
-        x = ReLU(x)
+        x = ReLU()(x)
         x = self.lin2(x)
         x = self.output_activation(x)
         return x
@@ -422,6 +451,13 @@ class ClassificationHead(torch.nn.Module):
         x = self.relu(x)
         x = self.lin2(x)
         x = Softmax(dim=-1)(x)
+        return x
+    
+class Identity(nn.Module):
+    def __init__(self):
+        super().__init__()
+        
+    def forward(self, x):
         return x
 
 

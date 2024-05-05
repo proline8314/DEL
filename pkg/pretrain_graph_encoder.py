@@ -9,13 +9,13 @@ import tensorboard as tb
 import torch
 import torch.nn as nn
 import torch.optim as optim
-from datasets.chembl_dataset import FULL_NAME_DICT, ChemBLActivityDataset
-from datasets.graph_dataset import GraphDataset
-from losses.zip_loss import ZIPLoss
-from models.ref_net import DELRefDecoder, DELRefEncoder, DELRefNet
+from datasets.chembl_dataset import ChemBLMolSmilesDataset
+from datasets.lmdb_dataset import LMDBDataset
+from models.ref_net import DELRefEncoder, RegressionHead
 from sklearn.model_selection import train_test_split
 from torch.utils.tensorboard import SummaryWriter
 from torch_geometric.loader import DataLoader
+from utils.mol_feat import process_to_pyg_data
 
 if __name__ == "__main__":
     # Set up logging
@@ -34,13 +34,12 @@ if __name__ == "__main__":
     parser.add_argument("--log_interval", type=int, default=5)
     parser.add_argument("--save_interval", type=int, default=5)
     parser.add_argument(
-        "--save_path", type=str, default="/data02/gtguo/DEL/data/weights/refnet/"
+        "--save_path",
+        type=str,
+        default="/data02/gtguo/DEL/data/weights/refnet_encoder_pretrain/",
     )
     parser.add_argument("--load_path", type=str, default=None)
-    parser.add_argument("--update_loss", action="store_true")
     # dataset
-    parser.add_argument("--target_name", type=str, default="ca9")
-    parser.add_argument("--fp_size", type=int, default=2048)
 
     # data split
     parser.add_argument("--train_size", type=float, default=0.8)
@@ -55,32 +54,22 @@ if __name__ == "__main__":
     parser.add_argument("--enc_n_layers", type=int, default=3)
     parser.add_argument("--enc_gat_n_heads", type=int, default=4)
     parser.add_argument("--enc_gat_ffn_ratio", type=int, default=4)
-    parser.add_argument("--enc_with_fp", action="store_true")
-    parser.add_argument("--enc_fp_embedding_size", type=int, default=32)
-    parser.add_argument("--enc_fp_ffn_size", type=int, default=128)
-    parser.add_argument("--enc_fp_gated", action="store_true")
-    parser.add_argument("--enc_fp_n_heads", type=int, default=4)
-    parser.add_argument("--enc_fp_size", type=int, default=256)
-    parser.add_argument("--enc_fp_to_gat_feedback", type=str, default="add")
-    parser.add_argument("--enc_gat_to_fp_pooling", type=str, default="mean")
 
-    # model decoder
-    parser.add_argument("--dec_node_input_size", type=int, default=64)
-    parser.add_argument("--dec_node_emb_size", type=int, default=64)
-    parser.add_argument("--dec_fp_input_size", type=int, default=32)
-    parser.add_argument("--dec_fp_emb_size", type=int, default=64)
-    parser.add_argument("--dec_output_size", type=int, default=2)
-    parser.add_argument("--dec_with_fp", action="store_true")
-    parser.add_argument("--dec_with_dist", action="store_true")
+    # model regression head
+    parser.add_argument("--node_head_input_size", type=int, default=64)
+    parser.add_argument("--node_head_hidden_size", type=int, default=64)
+    parser.add_argument("--node_head_output_size", type=int, default=19)
+    parser.add_argument("--edge_head_input_size", type=int, default=64)
+    parser.add_argument("--edge_head_hidden_size", type=int, default=64)
+    parser.add_argument("--edge_head_output_size", type=int, default=2)
 
     # loss
-    parser.add_argument("--target_size", type=int, default=4)
-    parser.add_argument("--label_size", type=int, default=6)
-    parser.add_argument("--matrix_size", type=int, default=2)
 
     # record
     parser.add_argument(
-        "--record_path", type=str, default="/data02/gtguo/DEL/data/records/refnet/"
+        "--record_path",
+        type=str,
+        default="/data02/gtguo/DEL/data/records/refnet_encoder_pretrain/",
     )
 
     args = parser.parse_args()
@@ -114,62 +103,75 @@ if __name__ == "__main__":
         n_layers=args.enc_n_layers,
         gat_n_heads=args.enc_gat_n_heads,
         gat_ffn_ratio=args.enc_gat_ffn_ratio,
-        with_fp=args.enc_with_fp,
-        fp_embedding_size=args.enc_fp_embedding_size,
-        fp_ffn_size=args.enc_fp_ffn_size,
-        fp_gated=args.enc_fp_gated,
-        fp_n_heads=args.enc_fp_n_heads,
-        fp_size=args.enc_fp_size,
-        fp_to_gat_feedback=args.enc_fp_to_gat_feedback,
-        gat_to_fp_pooling=args.enc_gat_to_fp_pooling,
+        with_fp=False,
+        fp_embedding_size=None,
+        fp_ffn_size=None,
+        fp_gated=None,
+        fp_n_heads=None,
+        fp_size=None,
+        fp_to_gat_feedback=None,
+        gat_to_fp_pooling=None,
     ).to(device)
-    decoder = DELRefDecoder(
-        node_input_size=args.dec_node_input_size,
-        node_emb_size=args.dec_node_emb_size,
-        fp_input_size=args.dec_fp_input_size,
-        fp_emb_size=args.dec_fp_emb_size,
-        output_size=args.dec_output_size,
-        output_activation=torch.exp,
-        with_fp=args.dec_with_fp,
-        with_dist=args.dec_with_dist,
+    node_head = RegressionHead(
+        input_size=args.node_head_input_size,
+        hidden_size=args.node_head_hidden_size,
+        output_size=args.node_head_output_size,
     ).to(device)
-    model = DELRefNet(encoder, decoder).to(device)
-    logger.info(f"Model has {sum(p.numel() for p in model.parameters())} parameters")
-
-    criterion = ZIPLoss(
-        label_size=args.label_size,
-        matrix_size=args.matrix_size,
-        target_size=args.target_size,
+    edge_head = RegressionHead(
+        input_size=args.edge_head_input_size,
+        hidden_size=args.edge_head_hidden_size,
+        output_size=args.edge_head_output_size,
     ).to(device)
 
-    if args.update_loss:
-        optimizer = optim.Adam(
-            list(model.parameters()) + list(criterion.parameters()), lr=args.lr
-        )
-    else:
-        optimizer = optim.Adam(model.parameters(), lr=args.lr)
+    logger.info(
+        f"Encoder has {sum(p.numel() for p in encoder.parameters())} parameters"
+    )
+    logger.info(
+        f"Node Head has {sum(p.numel() for p in node_head.parameters())} parameters"
+    )
+    logger.info(
+        f"Edge Head has {sum(p.numel() for p in edge_head.parameters())} parameters"
+    )
+
+    criterion = nn.MSELoss()
+
+    optimizer = optim.Adam(
+        list(encoder.parameters())
+        + list(node_head.parameters())
+        + list(edge_head.parameters()),
+        lr=args.lr,
+    )
 
     # Datasets
-    del_dataset = GraphDataset(
-        forced_reload=False, target_name=args.target_name, fpsize=args.fp_size
-    )
-    chembl_dataset = ChemBLActivityDataset(
-        FULL_NAME_DICT[args.target_name], update_target=False
-    )
-    del_train_dataset, del_val_dataset = train_test_split(
-        del_dataset, test_size=0.2, random_state=seed
-    )
+    def process(sample):
+        return process_to_pyg_data(sample["mol_structures"]["smiles"])
 
-    # DataLoaders
-    del_train_loader = DataLoader(
-        del_train_dataset, batch_size=args.batch_size, shuffle=True, num_workers=args.num_workers
+    chembl_dataset = LMDBDataset.update_process_fn(process).static_from_others(
+        dataset=ChemBLMolSmilesDataset(),
+        processed_dir="/data02/gtguo/DEL/data/dataset/chembl",
+        processed_fname="chembl_mol_data.lmdb",
     )
-    del_val_loader = DataLoader(del_val_dataset, batch_size=args.batch_size, shuffle=False, num_workers=args.num_workers)
+    # DataLoaders
+    train_data, val_data = train_test_split(
+        chembl_dataset, train_size=args.train_size, test_size=args.valid_size, random_state=seed, shuffle=True
+    )
+    train_loader = DataLoader(
+        train_data,
+        batch_size=args.batch_size,
+        shuffle=True,
+        num_workers=args.num_workers,
+    )
+    val_loader = DataLoader(
+        val_data,
+        batch_size=args.batch_size,
+        shuffle=False,
+        num_workers=args.num_workers,
+    )
 
 
     # Load model
     if args.load_path:
-        model.load_state_dict(torch.load(args.load_path))
+        encoder.load_state_dict(torch.load(args.load_path))
 
     if not os.path.exists(os.path.join(args.save_path, args.name)):
         os.makedirs(os.path.join(args.save_path, args.name))
@@ -177,25 +179,23 @@ if __name__ == "__main__":
     # Train
 
     for epoch in range(args.epochs):
-        model.train()
-        for i, data in enumerate(del_train_loader):
+        encoder.train()
+        node_head.train()
+        edge_head.train()
+        for i, data in enumerate(train_loader):
             data = data.to(device)
             optimizer.zero_grad()
-            output = model(
-                data.x,
-                data.edge_index,
-                data.edge_attr,
-                data.node_bbidx,
-                data.batch,
-                data.bbfp.view(data.batch_size, -1, args.fp_size),
-                data.node_dist,
+            node_embedding, edge_embedding = encoder(
+                data.x, data.edge_index, data.edge_attr
             )
+            node_output = node_head(node_embedding)
+            edge_output = edge_head(edge_embedding)
             loss = criterion(
-                output,
+                torch.cat((node_output, edge_output), dim=1),
                 torch.cat(
                     (
-                        data.y_target.view(data.batch_size, args.target_size),
-                        data.y_matrix.view(data.batch_size, args.matrix_size),
+                        data.y_node.view(data.batch_size, args.enc_node_feat_dim),
+                        data.y_edge.view(data.batch_size, args.enc_edge_feat_dim),
                     ),
                     dim=1,
                 ),
@@ -205,7 +205,7 @@ if __name__ == "__main__":
             if i % args.log_interval == 0:
                 logger.info(f"Epoch {epoch}, Iteration {i}, Train Loss: {loss.item()}")
                 writer.add_scalar(
-                    "train/loss", loss.item(), epoch * len(del_train_loader) + i
+                    "train/loss", loss.item(), epoch * len(train_loader) + i
                 )
 
         if epoch % args.save_interval == 0:
@@ -244,7 +244,9 @@ if __name__ == "__main__":
             writer.add_scalar("val/loss", val_loss, epoch)
 
     # loss parameters
-    logger.info(f"Loss parameters: {criterion.total_count, criterion.target_inflat_prob, criterion.matrix_inflat_prob}")
+    logger.info(
+        f"Loss parameters: {criterion.total_count, criterion.target_inflat_prob, criterion.matrix_inflat_prob}"
+    )
 
     writer.close()
 

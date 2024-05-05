@@ -10,12 +10,14 @@ import torch
 import torch.nn as nn
 import torch.optim as optim
 from datasets.chembl_dataset import FULL_NAME_DICT, ChemBLActivityDataset
-from datasets.graph_dataset import GraphDataset
-from losses.zip_loss import ZIPLoss
+from datasets.lmdb_dataset import LMDBDataset
 from models.ref_net import DELRefDecoder, DELRefEncoder, DELRefNet
+from sklearn.linear_model import LinearRegression
 from sklearn.model_selection import train_test_split
 from torch.utils.tensorboard import SummaryWriter
 from torch_geometric.loader import DataLoader
+from torch_geometric.nn import global_mean_pool as gap
+from utils.mol_feat import process_to_pyg_data
 
 if __name__ == "__main__":
     # Set up logging
@@ -25,7 +27,7 @@ if __name__ == "__main__":
     # Set up arguments
     parser = argparse.ArgumentParser()
     # general
-    parser.add_argument("--name", type=str, default="ca9_full")
+    parser.add_argument("--name", type=str, default="ca9_full_-loss")
     parser.add_argument("--seed", type=int, default=4)
     parser.add_argument("--device", type=str, default="cuda")
     parser.add_argument("--batch_size", type=int, default=4096)
@@ -36,15 +38,13 @@ if __name__ == "__main__":
     parser.add_argument(
         "--save_path", type=str, default="/data02/gtguo/DEL/data/weights/refnet/"
     )
-    parser.add_argument("--load_path", type=str, default=None)
-    parser.add_argument("--update_loss", action="store_true")
+    parser.add_argument(
+        "--load_path", type=str, default="/data02/gtguo/DEL/data/weights/refnet/"
+    )
     # dataset
     parser.add_argument("--target_name", type=str, default="ca9")
     parser.add_argument("--fp_size", type=int, default=2048)
 
-    # data split
-    parser.add_argument("--train_size", type=float, default=0.8)
-    parser.add_argument("--valid_size", type=float, default=0.2)
     # dataloader
     parser.add_argument("--num_workers", type=int, default=8)
     # model encoder
@@ -55,7 +55,6 @@ if __name__ == "__main__":
     parser.add_argument("--enc_n_layers", type=int, default=3)
     parser.add_argument("--enc_gat_n_heads", type=int, default=4)
     parser.add_argument("--enc_gat_ffn_ratio", type=int, default=4)
-    parser.add_argument("--enc_with_fp", action="store_true")
     parser.add_argument("--enc_fp_embedding_size", type=int, default=32)
     parser.add_argument("--enc_fp_ffn_size", type=int, default=128)
     parser.add_argument("--enc_fp_gated", action="store_true")
@@ -70,8 +69,6 @@ if __name__ == "__main__":
     parser.add_argument("--dec_fp_input_size", type=int, default=32)
     parser.add_argument("--dec_fp_emb_size", type=int, default=64)
     parser.add_argument("--dec_output_size", type=int, default=2)
-    parser.add_argument("--dec_with_fp", action="store_true")
-    parser.add_argument("--dec_with_dist", action="store_true")
 
     # loss
     parser.add_argument("--target_size", type=int, default=4)
@@ -88,14 +85,6 @@ if __name__ == "__main__":
     # print arguments to log
     for arg in vars(args):
         logger.info(f"{arg}: {getattr(args, arg)}")
-
-    # Set up tensorboard
-    tb_path = os.path.join(
-        os.path.dirname(__file__), os.path.join(args.record_path, args.name)
-    )
-    if not os.path.exists(tb_path):
-        os.makedirs(tb_path)
-    writer = SummaryWriter(tb_path)
 
     # Set up device
     device = torch.device(args.device if torch.cuda.is_available() else "cpu")
@@ -114,7 +103,7 @@ if __name__ == "__main__":
         n_layers=args.enc_n_layers,
         gat_n_heads=args.enc_gat_n_heads,
         gat_ffn_ratio=args.enc_gat_ffn_ratio,
-        with_fp=args.enc_with_fp,
+        with_fp=False,
         fp_embedding_size=args.enc_fp_embedding_size,
         fp_ffn_size=args.enc_fp_ffn_size,
         fp_gated=args.enc_fp_gated,
@@ -130,123 +119,66 @@ if __name__ == "__main__":
         fp_emb_size=args.dec_fp_emb_size,
         output_size=args.dec_output_size,
         output_activation=torch.exp,
-        with_fp=args.dec_with_fp,
-        with_dist=args.dec_with_dist,
+        with_fp=False,
+        with_dist=False,
     ).to(device)
     model = DELRefNet(encoder, decoder).to(device)
     logger.info(f"Model has {sum(p.numel() for p in model.parameters())} parameters")
 
-    criterion = ZIPLoss(
-        label_size=args.label_size,
-        matrix_size=args.matrix_size,
-        target_size=args.target_size,
-    ).to(device)
-
-    if args.update_loss:
-        optimizer = optim.Adam(
-            list(model.parameters()) + list(criterion.parameters()), lr=args.lr
-        )
-    else:
-        optimizer = optim.Adam(model.parameters(), lr=args.lr)
-
     # Datasets
-    del_dataset = GraphDataset(
-        forced_reload=False, target_name=args.target_name, fpsize=args.fp_size
-    )
+    def process(sample):
+        smiles = sample["mol_structures"]["smiles"]
+        pyg_data = process_to_pyg_data(smiles)
+        activity = sample[FULL_NAME_DICT[args.target_name]]["activity"]
+        return {"pyg_data": pyg_data, "activity": activity}
+
     chembl_dataset = ChemBLActivityDataset(
         FULL_NAME_DICT[args.target_name], update_target=False
     )
-    del_train_dataset, del_val_dataset = train_test_split(
-        del_dataset, test_size=0.2, random_state=seed
+    active_dataset, _ = chembl_dataset.split_with_condition(
+        lambda is_hit: is_hit == 1,
+        (("Carbonic anhydrase IX", "is_hit"),),
     )
+    active_dataset = LMDBDataset.update_process_fn(
+        process_fn=process
+    ).dynamic_from_others(active_dataset)
+    logger.info(f"Dataset has {len(active_dataset)} samples")
+    logger.info(f"Dataset data example: {active_dataset[0]}")
 
     # DataLoaders
-    del_train_loader = DataLoader(
-        del_train_dataset, batch_size=args.batch_size, shuffle=True, num_workers=args.num_workers
+    data_loader = DataLoader(
+        active_dataset,
+        batch_size=args.batch_size,
+        shuffle=True,
+        num_workers=args.num_workers,
     )
-    del_val_loader = DataLoader(del_val_dataset, batch_size=args.batch_size, shuffle=False, num_workers=args.num_workers)
-
 
     # Load model
     if args.load_path:
-        model.load_state_dict(torch.load(args.load_path))
+        model.load_state_dict(
+            torch.load(os.path.join(args.load_path, args.name, "model.pt")),
+            strict=False,
+        )
 
-    if not os.path.exists(os.path.join(args.save_path, args.name)):
-        os.makedirs(os.path.join(args.save_path, args.name))
+    # Test
+    model.eval()
+    output_data = []
+    activity_data = []
 
-    # Train
+    for batch in data_loader:
+        data = batch["pyg_data"].to(device)
+        activity = batch["activity"].to(device)
+        output, _, _ = encoder(
+            data.x, data.edge_index, data.edge_attr, None, data.batch, None
+        )
+        output = gap(decoder.n_dec(output), data.batch)
+        output_data.append(output)
+        activity_data.append(activity)
 
-    for epoch in range(args.epochs):
-        model.train()
-        for i, data in enumerate(del_train_loader):
-            data = data.to(device)
-            optimizer.zero_grad()
-            output = model(
-                data.x,
-                data.edge_index,
-                data.edge_attr,
-                data.node_bbidx,
-                data.batch,
-                data.bbfp.view(data.batch_size, -1, args.fp_size),
-                data.node_dist,
-            )
-            loss = criterion(
-                output,
-                torch.cat(
-                    (
-                        data.y_target.view(data.batch_size, args.target_size),
-                        data.y_matrix.view(data.batch_size, args.matrix_size),
-                    ),
-                    dim=1,
-                ),
-            )
-            loss.backward()
-            optimizer.step()
-            if i % args.log_interval == 0:
-                logger.info(f"Epoch {epoch}, Iteration {i}, Train Loss: {loss.item()}")
-                writer.add_scalar(
-                    "train/loss", loss.item(), epoch * len(del_train_loader) + i
-                )
+    output_data = torch.cat(output_data, dim=0).detach().cpu().numpy()
+    activity_data = torch.cat(activity_data, dim=0).detach().cpu().numpy()
 
-        if epoch % args.save_interval == 0:
-            torch.save(
-                model.state_dict(),
-                os.path.join(args.save_path, args.name, f"model_{epoch}.pt"),
-            )
-
-        model.eval()
-        with torch.no_grad():
-            losses = []
-            for i, data in enumerate(del_val_loader):
-                data = data.to(device)
-                output = model(
-                    data.x,
-                    data.edge_index,
-                    data.edge_attr,
-                    data.node_bbidx,
-                    data.batch,
-                    data.bbfp.view(data.batch_size, -1, args.fp_size),
-                    data.node_dist,
-                )
-                loss = criterion(
-                    output,
-                    torch.cat(
-                        (
-                            data.y_target.view(data.batch_size, args.target_size),
-                            data.y_matrix.view(data.batch_size, args.matrix_size),
-                        ),
-                        dim=1,
-                    ),
-                )
-                losses.append(loss.item())
-            val_loss = np.mean(losses)
-            logger.info(f"Epoch {epoch}, Validation Loss: {val_loss}")
-            writer.add_scalar("val/loss", val_loss, epoch)
-
-    # loss parameters
-    logger.info(f"Loss parameters: {criterion.total_count, criterion.target_inflat_prob, criterion.matrix_inflat_prob}")
-
-    writer.close()
-
-    # Save model
-    torch.save(model.state_dict(), os.path.join(args.save_path, args.name, "model.pt"))
+    # linear regression
+    reg = LinearRegression().fit(output_data, activity_data)
+    r2 = reg.score(output_data, activity_data)
+    logger.info(f"R2: {r2}")

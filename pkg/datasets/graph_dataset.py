@@ -73,7 +73,7 @@ class GraphDataset(LMDBDataset):
         bbfp = torch.tensor(bbfp, dtype=torch.float)
 
         # * Unstable: append topological info to node_feats
-        node_features = torch.cat((node_features, node_bbidx.view(-1, 1), node_dist.view(-1, 1)), dim=1)
+        # * node_features = torch.cat((node_features, node_bbidx.view(-1, 1), node_dist.view(-1, 1)), dim=1)
 
         data = Data(x=node_features, edge_index=edge_index, edge_attr=edge_features)
         data.y_matrix = y_matrix
