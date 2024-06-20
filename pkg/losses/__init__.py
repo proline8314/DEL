@@ -1,1 +1,1 @@
-from .zip_loss import ZIPLoss
+from .zip_loss import CorrectedZIPLoss, ZIPLoss

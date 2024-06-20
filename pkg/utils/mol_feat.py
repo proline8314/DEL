@@ -5,7 +5,7 @@ import numpy as np
 import rdkit
 import torch
 from rdkit import Chem
-from rdkit.Chem import rdmolops
+from rdkit.Chem import rdchem, rdmolops
 from rdkit.Chem.SaltRemover import SaltRemover
 from torch_geometric.data import Data
 
@@ -45,6 +45,10 @@ def get_edge_features(mol: Chem.Mol) -> torch.Tensor:
     for bond in mol.GetBonds():
         edge_feature = []
         edge_feature.append(bond.GetBondTypeAsDouble())
+        """
+        edge_feature.append(rdchem.BondStereo.values.index(bond.GetStereo()))
+        edge_feature.append(bond.GetIsConjugated())
+        """
         edge_feature.append(bond.IsInRing())
         all_edge_feature.append(edge_feature)
         all_edge_feature.append(edge_feature)

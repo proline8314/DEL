@@ -16,6 +16,7 @@ from models.ref_net import DELRefDecoder, DELRefEncoder, DELRefNet
 from sklearn.model_selection import train_test_split
 from torch.utils.tensorboard import SummaryWriter
 from torch_geometric.loader import DataLoader
+from tqdm import tqdm
 
 if __name__ == "__main__":
     # Set up logging
@@ -29,13 +30,13 @@ if __name__ == "__main__":
     parser.add_argument("--seed", type=int, default=4)
     parser.add_argument("--device", type=str, default="cuda")
     parser.add_argument("--batch_size", type=int, default=4096)
-    parser.add_argument("--epochs", type=int, default=100)
+    parser.add_argument("--epochs", type=int, default=50)
     parser.add_argument("--lr", type=float, default=3e-4)
     parser.add_argument("--weight_decay", type=float, default=1e-4)
     parser.add_argument("--log_interval", type=int, default=5)
-    parser.add_argument("--save_interval", type=int, default=5)
+    parser.add_argument("--save_interval", type=int, default=25)
     parser.add_argument(
-        "--save_path", type=str, default="/data02/gtguo/DEL/data/weights/refnet/"
+        "--save_path", type=str, default="/data02/gtguo/DEL/data/weights/refnet_nhop/"
     )
     parser.add_argument("--load_path", type=str, default=None)
     parser.add_argument("--load", action="store_true")
@@ -44,6 +45,7 @@ if __name__ == "__main__":
     parser.add_argument("--target_name", type=str, default="ca9")
     parser.add_argument("--fp_size", type=int, default=2048)
     parser.add_argument("--forced_reload", action="store_true")
+    parser.add_argument("--nhop_split_ratio", type=float, default=0.9)
 
     # data split
     parser.add_argument("--train_size", type=float, default=0.8)
@@ -84,7 +86,7 @@ if __name__ == "__main__":
 
     # record
     parser.add_argument(
-        "--record_path", type=str, default="/data02/gtguo/DEL/data/records/refnet/"
+        "--record_path", type=str, default="/data02/gtguo/DEL/data/records/refnet_nhop/"
     )
 
     # scheduler
@@ -203,24 +205,87 @@ if __name__ == "__main__":
         target_name=args.target_name,
         fpsize=args.fp_size,
     )
+
     """
     chembl_dataset = ChemBLActivityDataset(
         FULL_NAME_DICT[args.target_name], update_target=False
     )
     """
-    del_train_dataset, del_val_dataset = train_test_split(
-        del_dataset, test_size=0.2, random_state=seed
+
+    def get_idx_array(dataset):
+        idx_array = []
+        for i in tqdm(range(len(dataset))):
+            idx_array.append(dataset[i].mol_id.numpy())
+        idx_array = np.array(idx_array)
+        return idx_array
+    
+    def random_split_idx_about_nhop(idx_array, split_ratio=args.nhop_split_ratio):
+        idxs_on_dim_1 = np.unique(idx_array[:, 1])
+        idxs_on_dim_2 = np.unique(idx_array[:, 2])
+        np.random.shuffle(idxs_on_dim_1)
+        np.random.shuffle(idxs_on_dim_2)
+        split_idx_1 = int(len(idxs_on_dim_1) * split_ratio)
+        split_idx_2 = int(len(idxs_on_dim_2) * split_ratio)
+        is_zero_hop = np.logical_and(
+            np.isin(idx_array[:, 1], idxs_on_dim_1[:split_idx_1]),
+            np.isin(idx_array[:, 2], idxs_on_dim_2[:split_idx_2])
+        )
+        is_one_hop = np.logical_or(
+            np.logical_and(
+                np.isin(idx_array[:, 1], idxs_on_dim_1[:split_idx_1]),
+                np.isin(idx_array[:, 2], idxs_on_dim_2[split_idx_2:])
+            ),
+            np.logical_and(
+                np.isin(idx_array[:, 1], idxs_on_dim_1[split_idx_1:]),
+                np.isin(idx_array[:, 2], idxs_on_dim_2[:split_idx_2])
+            )
+        )
+        is_two_hop = np.logical_and(
+            np.isin(idx_array[:, 1], idxs_on_dim_1[split_idx_1:]),
+            np.isin(idx_array[:, 2], idxs_on_dim_2[split_idx_2:])
+        )
+        zero_hop_idx = idx_array[is_zero_hop]
+        one_hop_idx = idx_array[is_one_hop]
+        two_hop_idx = idx_array[is_two_hop]
+        return is_zero_hop, is_one_hop, is_two_hop, zero_hop_idx, one_hop_idx, two_hop_idx
+
+    logger.info(f"Dataset size: {len(del_dataset)}")
+    idx_array = get_idx_array(del_dataset)
+    logger.info(f"idx_array size: {idx_array.shape}")
+
+    is_zero_hop, is_one_hop, is_two_hop, zero_hop_idx, one_hop_idx, two_hop_idx = random_split_idx_about_nhop(idx_array)
+
+    logger.info(f"Zero-hop size: {np.sum(is_zero_hop)}")
+    logger.info(f"One-hop size: {np.sum(is_one_hop)}")
+    logger.info(f"Two-hop size: {np.sum(is_two_hop)}")
+
+    logger.info(f"Zero-hop idx size: {zero_hop_idx.shape}")
+    logger.info(f"One-hop idx size: {one_hop_idx.shape}")
+    logger.info(f"Two-hop idx size: {two_hop_idx.shape}")
+
+    zero_hop_dataset = del_dataset[is_zero_hop]
+    one_hop_dataset = del_dataset[is_one_hop]
+    two_hop_dataset = del_dataset[is_two_hop]
+
+    logger.info(f"Zero-hop dataset size: {len(zero_hop_dataset)}")
+    logger.info(f"One-hop dataset size: {len(one_hop_dataset)}")
+    logger.info(f"Two-hop dataset size: {len(two_hop_dataset)}")
+
+    train_dataset, val_dataset = train_test_split(
+        zero_hop_dataset, train_size=args.train_size, test_size=args.valid_size
     )
+    logger.info(f"Train dataset size: {len(train_dataset)}")
+    logger.info(f"Validation dataset size: {len(val_dataset)}")
 
     # DataLoaders
     del_train_loader = DataLoader(
-        del_train_dataset,
+        train_dataset,
         batch_size=args.batch_size,
         shuffle=True,
         num_workers=args.num_workers,
     )
     del_val_loader = DataLoader(
-        del_val_dataset,
+        val_dataset,
         batch_size=args.batch_size,
         shuffle=False,
         num_workers=args.num_workers,
@@ -374,6 +439,72 @@ if __name__ == "__main__":
 
     # Save model
     torch.save(model.state_dict(), os.path.join(args.save_path, args.name, "model.pt"))
-    torch.save(
-        criterion.state_dict(), os.path.join(args.save_path, args.name, "criterion.pt")
+    
+    # eval on n-hop dataset
+    model.eval()
+    zero_hop_loader = DataLoader(
+        zero_hop_dataset,
+        batch_size=args.batch_size,
+        shuffle=False,
+        num_workers=args.num_workers,
     )
+    one_hop_loader = DataLoader(
+        one_hop_dataset,
+        batch_size=args.batch_size,
+        shuffle=False,
+        num_workers=args.num_workers,
+    )
+    two_hop_loader = DataLoader(
+        two_hop_dataset,
+        batch_size=args.batch_size,
+        shuffle=False,
+        num_workers=args.num_workers,
+    )
+    target_lambda_zero_hop = []
+    target_lambda_one_hop = []
+    target_lambda_two_hop = []
+
+    with torch.no_grad():
+        for loader, target_lambda in zip(
+            [zero_hop_loader, one_hop_loader, two_hop_loader],
+            [target_lambda_zero_hop, target_lambda_one_hop, target_lambda_two_hop],
+        ):
+            for i, data in tqdm(enumerate(loader)):
+                data = data.to(device)
+                output = model(
+                    data.x,
+                    data.edge_index,
+                    data.edge_attr,
+                    data.node_bbidx,
+                    data.batch,
+                    data.bbfp.view(data.batch_size, -1, args.fp_size),
+                    data.node_dist,
+                )
+                target_lambda.append(output[:, 0].detach().cpu())
+            # target_lambda = torch.cat(target_lambda, dim=0).numpy()
+
+    import pickle
+    save_dir = f"/data02/gtguo/DEL/data/temp/nhop"
+    if not os.path.exists(save_dir):
+        os.makedirs(save_dir)
+    # get file suffix
+    suffix = 0
+    """
+    while os.path.exists(os.path.join(save_dir, f"{args.name}_zero_hop_{suffix}.pkl")):
+        suffix += 1
+    """
+    # save target_lambda
+    with open(os.path.join(save_dir, f"{args.name}_zero_hop_{suffix}.pkl"), "wb") as f:
+        pickle.dump(target_lambda_zero_hop, f)
+    with open(os.path.join(save_dir, f"{args.name}_one_hop_{suffix}.pkl"), "wb") as f:
+        pickle.dump(target_lambda_one_hop, f)
+    with open(os.path.join(save_dir, f"{args.name}_two_hop_{suffix}.pkl"), "wb") as f:
+        pickle.dump(target_lambda_two_hop, f)
+    # dump idxes
+    with open(os.path.join(save_dir, f"{args.name}_zero_hop_idx_{suffix}.pkl"), "wb") as f:
+        pickle.dump(zero_hop_idx, f)
+    with open(os.path.join(save_dir, f"{args.name}_one_hop_idx_{suffix}.pkl"), "wb") as f:
+        pickle.dump(one_hop_idx, f)
+    with open(os.path.join(save_dir, f"{args.name}_two_hop_idx_{suffix}.pkl"), "wb") as f:
+        pickle.dump(two_hop_idx, f)
+            

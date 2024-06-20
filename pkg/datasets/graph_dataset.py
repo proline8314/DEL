@@ -22,6 +22,11 @@ PROCESSED_FILE_NAME = "graph_dataset.lmdb"
 
 class GraphDataset(LMDBDataset):
     # TODO (done): take survey in pyg dataloader to support for heterogeneous dict dataset
+    DATASET_DIR = "/data02/gtguo/DEL/data/dataset/acs.jcim.2c01608"
+    name_dict = {
+        "ca9": "graph_dataset.lmdb",
+        "hrp": "graph_dataset_hrp.lmdb",
+    }
     def __init__(
         self,
         forced_reload: bool = False,
@@ -39,7 +44,7 @@ class GraphDataset(LMDBDataset):
 
         DATASET_DIR = "/data02/gtguo/DEL/data/dataset/acs.jcim.2c01608"
         RAW_FILE_NAME = "features.lmdb"
-        PROCESSED_FILE_NAME = "graph_dataset.lmdb"
+        PROCESSED_FILE_NAME = GraphDataset.name_dict[target_name]
         super(GraphDataset, self).__init__(
             raw_dir=DATASET_DIR,
             raw_fname=RAW_FILE_NAME,
@@ -72,6 +77,8 @@ class GraphDataset(LMDBDataset):
         bbfp = np.array([self.get_fingerprint(smiles) for smiles in bbsmiles_list])
         bbfp = torch.tensor(bbfp, dtype=torch.float)
 
+        mol_id = torch.tensor([int(sample[f"BB{i}_id"]) for i in range(1, 4)], dtype=torch.int64)
+
         # * Unstable: append topological info to node_feats
         # * node_features = torch.cat((node_features, node_bbidx.view(-1, 1), node_dist.view(-1, 1)), dim=1)
 
@@ -81,4 +88,5 @@ class GraphDataset(LMDBDataset):
         data.node_bbidx = node_bbidx
         data.node_dist = node_dist
         data.bbfp = bbfp
+        data.mol_id = mol_id
         return data

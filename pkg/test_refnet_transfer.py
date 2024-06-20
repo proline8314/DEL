@@ -29,11 +29,12 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     # general
     parser.add_argument("--name", type=str, default="ca9_full_real")
+    parser.add_argument("--base_fname", type=str, default="ca9_full_real")
     parser.add_argument("--seed", type=int, default=4)
     parser.add_argument("--device", type=str, default="cuda")
     parser.add_argument("--batch_size", type=int, default=4096)
     parser.add_argument("--epochs", type=int, default=100)
-    parser.add_argument("--lr", type=float, default=1e-3)
+    parser.add_argument("--lr", type=float, default=3e-4)
     parser.add_argument("--log_interval", type=int, default=1)
     parser.add_argument("--save_interval", type=int, default=5)
     parser.add_argument(
@@ -45,7 +46,8 @@ if __name__ == "__main__":
     # dataset
     parser.add_argument("--target_name", type=str, default="ca9")
     parser.add_argument("--fp_size", type=int, default=2048)
-    parser.add_argument("--transfer_learning_ratio", type=float, default=0.50)
+    parser.add_argument("--transfer_learning", action="store_true")
+    parser.add_argument("--transfer_learning_ratio", type=float, default=0.10)
     # dataloader
     parser.add_argument("--num_workers", type=int, default=8)
     # model encoder
@@ -78,7 +80,7 @@ if __name__ == "__main__":
 
     # record
     parser.add_argument(
-        "--record_path", type=str, default="/data02/gtguo/DEL/data/records/refnet/"
+        "--record_path", type=str, default="/data02/gtguo/DEL/data/records/refnet_ca9_transfer/"
     )
 
     args = parser.parse_args()
@@ -89,6 +91,14 @@ if __name__ == "__main__":
 
     # Set up device
     device = torch.device(args.device if torch.cuda.is_available() else "cpu")
+
+    # Set up tensorboard
+    tb_path = os.path.join(
+        os.path.dirname(__file__), os.path.join(args.record_path, args.name)
+    )
+    if not os.path.exists(tb_path):
+        os.makedirs(tb_path)
+    writer = SummaryWriter(tb_path)
 
     # Set up random seed
     seed = args.seed
@@ -157,9 +167,11 @@ if __name__ == "__main__":
     train_dataset, test_dataset = train_test_split(
         active_dataset, train_size=args.transfer_learning_ratio, random_state=seed
     )
+    print(len(train_dataset), len(test_dataset))
     train_dataset, valid_dataset = train_test_split(
-        train_dataset, train_size=0.5, random_state=seed
+        train_dataset, train_size=0.8, random_state=seed
     )
+    print(len(train_dataset), len(valid_dataset))
     train_loader = DataLoader(
         train_dataset,
         batch_size=args.batch_size,
@@ -178,13 +190,14 @@ if __name__ == "__main__":
         shuffle=False,
         num_workers=args.num_workers,
     )
+    logger.info(f"Train loader has {len(train_loader)} data")
 
     # Load model
-    transfer_learning = True
-    if args.load_path and transfer_learning:
+    if args.load_path and args.transfer_learning:
         model.load_state_dict(
-            torch.load(os.path.join(args.load_path, args.name, "model.pt")), strict=False
+            torch.load(os.path.join(args.load_path, args.base_fname, "model.pt"), map_location=device), strict=False
         )
+        logger.info(f"Model loaded from {os.path.join(args.load_path, args.base_fname, 'model.pt')}")
 
     # Train
     model.train()
@@ -197,6 +210,7 @@ if __name__ == "__main__":
     best_valid_loss = float("inf")
 
     for epoch in range(args.epochs):
+        train_loss = 0
         for batch in train_loader:
             optimizer.zero_grad()
             data = batch["pyg_data"].to(device)
@@ -209,6 +223,9 @@ if __name__ == "__main__":
             loss = criterion(output, activity)
             loss.backward()
             optimizer.step()
+            train_loss += loss
+        train_loss /= len(train_loader)
+        writer.add_scalar("Loss/train", train_loss, epoch)
         
         # Validation
         valid_loss = 0
@@ -222,6 +239,7 @@ if __name__ == "__main__":
             output = head(output)
             valid_loss += criterion(output, activity)
         valid_loss /= len(valid_loader)
+        writer.add_scalar("Loss/valid", valid_loss, epoch)
 
         if epoch % args.log_interval == 0:
             logger.info(f"Epoch {epoch}, Train Loss {loss.item()}")
@@ -267,8 +285,12 @@ if __name__ == "__main__":
     # linear regression
     reg = LinearRegression().fit(output_data, activity_data)
     r2 = reg.score(output_data, activity_data)
+    loss = np.mean((reg.predict(output_data) - activity_data) ** 2)
     logger.info(f"R2: {r2}")
+    logger.info(f"Loss: {loss}")
 
     reg = LinearRegression().fit(score_data, activity_data)
     r2 = reg.score(score_data, activity_data)
     logger.info(f"R2: {r2}")
+    loss = np.mean((reg.predict(score_data) - activity_data) ** 2)
+    logger.info(f"Loss: {loss}")
