@@ -178,6 +178,31 @@ class LMDBDataset(Dataset, IFile):
         processed_fname: str,
         forced_process: bool = False,
     ):
+        # ! Fix the bug
+        """
+        Traceback (most recent call last):
+        File "/data02/gtguo/DEL/pkg/infer_ef_ca9.py", line 159, in <module>
+            active_dataset = active_dataset.static_from_others(
+        File "/data02/gtguo/DEL/pkg/datasets/lmdb_dataset.py", line 181, in static_from_others
+            return cls(
+        File "/data02/gtguo/DEL/pkg/datasets/lmdb_dataset.py", line 77, in __init__
+            self.processed_env, self.processed_txn = self._assign_txn(
+        File "/data02/gtguo/DEL/pkg/datasets/lmdb_dataset.py", line 276, in _assign_txn
+            self._data = self._process_others()
+        File "/data02/gtguo/DEL/pkg/datasets/lmdb_dataset.py", line 302, in _process_others
+            sample = self.source_dataset[idx]
+        File "/data02/gtguo/DEL/pkg/datasets/lmdb_dataset.py", line 105, in __getitem__
+            data = self.get_fn(self.indices[idx])
+        File "/data02/gtguo/DEL/pkg/datasets/lmdb_dataset.py", line 335, in _static_get
+            return pickle.loads(self.processed_txn.get(f"{index}".encode()))
+        lmdb.Error: Attempt to operate on closed/deleted/dropped object.
+        Exception ignored in: <function LMDBDataset.__del__ at 0x7f95f4535750>
+        Traceback (most recent call last):
+        File "/data02/gtguo/DEL/pkg/datasets/lmdb_dataset.py", line 124, in __del__
+            self.processed_txn.abort()
+        AttributeError: 'NewCls' object has no attribute 'processed_txn'
+        """
+
         return cls(
             source_dataset=dataset,
             processed_dir=processed_dir,
@@ -205,21 +230,23 @@ class LMDBDataset(Dataset, IFile):
                 return process_fn(sample)
 
         return NewCls
-    
+
     @classmethod
     def append_process_fn(cls, process_fn: Callable[[Any], Any]):
         r"""Appending a process function to the class"""
         # TODO: ! test
         old_process_fn = cls.process
+
         class NewCls(cls):
             def process(self, sample: Any) -> Any:
                 return process_fn(old_process_fn(self, sample))
+
         return NewCls
 
     @staticmethod
     def get_txn_len(txn: lmdb.Transaction) -> int:
         return len(list(txn.cursor().iternext(values=False)))
-    
+
     def _check_meta_info(self):
         # TODO: use meta info to check the validity of the dataset, reload if not valid
         return True
@@ -458,7 +485,7 @@ class LMDBDataset(Dataset, IFile):
     ) -> Tuple["Dataset", "Dataset"]:
         r"""
         Split the dataset based on the condition.
-        
+
         Example:
         ```
         def condition(label):

@@ -29,17 +29,13 @@ if __name__ == "__main__":
     # Set up arguments
     parser = argparse.ArgumentParser()
     # general
-    parser.add_argument("--name", type=str, default="ca9_vs_10")
-    parser.add_argument("--weight_name", type=str, default="ca9_full_real")
+    parser.add_argument("--name", type=str, default="ca9_ef")
+    parser.add_argument("--weight_name", type=str, default="ca9_large_corr_400")
     parser.add_argument("--seed", type=int, default=4)
     parser.add_argument("--device", type=str, default="cuda")
     parser.add_argument("--batch_size", type=int, default=1024)
-    parser.add_argument("--epochs", type=int, default=100)
-    parser.add_argument("--lr", type=float, default=1e-3)
-    parser.add_argument("--log_interval", type=int, default=5)
-    parser.add_argument("--save_interval", type=int, default=5)
     parser.add_argument(
-        "--save_path", type=str, default="/data02/gtguo/DEL/data/weights/refnet_ca9_vs/"
+        "--save_path", type=str, default="/data02/gtguo/DEL/data/weights/ref_ca9_ef/"
     )
     parser.add_argument(
         "--load_path", type=str, default="/data02/gtguo/DEL/data/weights/refnet/"
@@ -49,8 +45,7 @@ if __name__ == "__main__":
     # dataset
     parser.add_argument("--target_name", type=str, default="ca9")
     parser.add_argument("--fp_size", type=int, default=2048)
-    parser.add_argument("--inactive_multiplier", type=int, default=10)
-    parser.add_argument("--active_score_threshold", type=float, default=6.0)
+    parser.add_argument("--active_score_threshold", type=float, default=6)
 
     # dataloader
     parser.add_argument("--num_workers", type=int, default=8)
@@ -59,7 +54,7 @@ if __name__ == "__main__":
     parser.add_argument("--enc_edge_feat_dim", type=int, default=2)
     parser.add_argument("--enc_node_embedding_size", type=int, default=64)
     parser.add_argument("--enc_edge_embedding_size", type=int, default=64)
-    parser.add_argument("--enc_n_layers", type=int, default=3)
+    parser.add_argument("--enc_n_layers", type=int, default=5)
     parser.add_argument("--enc_gat_n_heads", type=int, default=4)
     parser.add_argument("--enc_gat_ffn_ratio", type=int, default=4)
     parser.add_argument("--enc_fp_embedding_size", type=int, default=32)
@@ -81,11 +76,6 @@ if __name__ == "__main__":
     parser.add_argument("--target_size", type=int, default=4)
     parser.add_argument("--label_size", type=int, default=6)
     parser.add_argument("--matrix_size", type=int, default=2)
-
-    # record
-    parser.add_argument(
-        "--record_path", type=str, default="/data02/gtguo/DEL/data/records/refnet/"
-    )
 
     args = parser.parse_args()
 
@@ -132,8 +122,19 @@ if __name__ == "__main__":
     model = DELRefNet(encoder, decoder).to(device)
     logger.info(f"Model has {sum(p.numel() for p in model.parameters())} parameters")
 
-    # Datasets
-    def process(sample):
+    # # Datasets
+    # def process(sample):
+    #     smiles = sample["mol_structures"]["smiles"]
+    #     pyg_data = process_to_pyg_data(smiles)
+    #     activity = sample[FULL_NAME_DICT[args.target_name]]["factivity"]
+    #     return {"pyg_data": pyg_data, "activity": activity}
+
+    def process_chemdiv(sample):
+        smiles = sample["smiles"]
+        pyg_data = process_to_pyg_data(smiles)
+        return {"pyg_data": pyg_data, "smiles": smiles}
+
+    def process_chembl(sample):
         smiles = sample["mol_structures"]["smiles"]
         pyg_data = process_to_pyg_data(smiles)
         activity = sample[FULL_NAME_DICT[args.target_name]]["activity"]
@@ -142,56 +143,37 @@ if __name__ == "__main__":
     chembl_dataset = ChemBLActivityDataset(
         FULL_NAME_DICT[args.target_name], update_target=False
     )
-    active_dataset, inactive_dataset = chembl_dataset.split_with_condition(
+    active_dataset, _ = chembl_dataset.split_with_condition(
         lambda is_hit: is_hit == 1,
         (("Carbonic anhydrase IX", "is_hit"),),
     )
     active_dataset = LMDBDataset.update_process_fn(
-        process_fn=process
+        process_fn=process_chembl
     ).dynamic_from_others(active_dataset)
 
-    real_active_dataset, false_active_dataset = active_dataset.split_with_condition(
+    active_dataset, _ = active_dataset.split_with_condition(
         lambda activity: activity > args.active_score_threshold,
         ("activity",),
     )
 
-    active_dataset = real_active_dataset
-    if len(false_active_dataset) < len(real_active_dataset) * args.inactive_multiplier:
-        len_inactive_dataset = len(
-            real_active_dataset
-        ) * args.inactive_multiplier - len(false_active_dataset)
-        inactive_dataset = train_test_split(
-            inactive_dataset, train_size=len_inactive_dataset, random_state=seed
-        )[0]
-        inactive_dataset = LMDBDataset.update_process_fn(
-            process_fn=process
-        ).dynamic_from_others(inactive_dataset)
-        inactive_dataset = inactive_dataset + false_active_dataset
+    """
+    chemdiv_dataset = LMDBDataset.readonly_raw(
+        raw_dir="/data03/gtguo/data/chemdiv/lmdb", raw_fname="chemdiv.lmdb"
+    )
+    inactive_dataset = LMDBDataset.update_process_fn(
+        process_fn=process_chemdiv
+    ).static_from_others(
+        chemdiv_dataset,
+        processed_dir="/data03/gtguo/data/chemdiv/lmdb",
+        processed_fname="chemdiv_processed.lmdb",
+    )
+    """
 
-        logger.info(
-            f"Selected {len_inactive_dataset} inactive samples from the original dataset"
-        )
-    else:
-        inactive_dataset = train_test_split(
-            false_active_dataset,
-            train_size=len(real_active_dataset) * args.inactive_multiplier,
-            random_state=seed,
-        )[0]
-
-    # inactive_dataset = LMDBDataset.static_from_others(inactive_dataset, processed_dir="/data02/gtguo/DEL/data/dataset/chembl", processed_fname="ca9_inactive_thr6.lmdb")
-    # raise ValueError
+    inactive_dataset = LMDBDataset.readonly_raw(
+        raw_dir="/data03/gtguo/data/chemdiv/lmdb", raw_fname="chemdiv_processed.lmdb"
+    )
 
     logger.info(f"Active dataset has {len(active_dataset)} samples")
-    logger.info(f"Dataset data example: {active_dataset[0]}")
-
-    # filter large molecules
-    """
-    temp_dataset = []
-    for sample in inactive_dataset:
-        if sample["pyg_data"].x.size(0) < 50:
-            temp_dataset.append(sample)
-    inactive_dataset = LMDBDataset.dynamic_from_others(temp_dataset)
-    """
     logger.info(f"Inactive dataset has {len(inactive_dataset)} samples")
 
     # DataLoaders
@@ -212,7 +194,10 @@ if __name__ == "__main__":
     if args.load_path and args.load_weight:
         logger.info(f"Load model from {os.path.join(args.load_path, args.weight_name)}")
         model.load_state_dict(
-            torch.load(os.path.join(args.load_path, args.weight_name, "model.pt"), map_location=device),
+            torch.load(
+                os.path.join(args.load_path, args.weight_name, "model.pt"),
+                map_location=device,
+            ),
             strict=False,
         )
 
@@ -352,3 +337,33 @@ if __name__ == "__main__":
         logger.info(f"Enrichment factor 5%: {enrichment_factor(y_test, y_pred, 0.05)}")
         logger.info(f"Enrichment factor 10%: {enrichment_factor(y_test, y_pred)}")
         logger.info(f"ROC AUC: {roc_auc_score(y_test, y_pred)}")
+
+    # save results: to a csv file, smiles, actual activity and predicted activity score(target_lambda)
+    if os.path.exists(args.save_path) is False:
+        os.makedirs(args.save_path)
+
+    active_output_data = np.concatenate(
+        [
+            np.array([data["smiles"] for data in active_dataset]).reshape(-1, 1),
+            np.ones(len(active_dataset)).reshape(-1, 1),
+            target_lambda[: len(active_dataset)].reshape(-1, 1),
+        ],
+        axis=1,
+    )
+    inactive_output_data = np.concatenate(
+        [
+            np.array([data["smiles"] for data in inactive_dataset]).reshape(-1, 1),
+            np.zeros(len(inactive_dataset)).reshape(-1, 1),
+            target_lambda[len(active_dataset) :].reshape(-1, 1),
+        ],
+        axis=1,
+    )
+    output_data = np.concatenate([active_output_data, inactive_output_data], axis=0)
+    output_df = pd.DataFrame(
+        output_data, columns=["smiles", "activity", "predicted_activity"]
+    )
+    output_df.to_csv(
+        os.path.join(args.save_path, f"{args.name}_activity_prediction.csv"),
+        index=False,
+    )
+    logger.info(f"Save activity prediction to {args.save_path}")
