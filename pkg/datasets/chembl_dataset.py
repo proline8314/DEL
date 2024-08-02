@@ -14,7 +14,7 @@ from tqdm import tqdm
 
 from .lmdb_dataset import LMDBDataset
 
-FDIR = "/data02/gtguo/DEL/data/dataset/chembl"
+FDIR = "/data03/gtguo/data/chembl/lmdb"
 FNAME = "chembl_activity.lmdb"
 DATABASE_PATH = "/data02/gtguo/data/chembl_33/chembl_33_sqlite/chembl_33.db"
 
