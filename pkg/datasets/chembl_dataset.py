@@ -24,6 +24,10 @@ CHEMBL_ID_NAME_DICT = {
 FULL_NAME_DICT = {
     "ca9": "Carbonic anhydrase IX",
     "hrp": "Horseradish peroxidase",
+    "ca2": "Carbonic anhydrase II",
+    "ca12": "Carbonic anhydrase XII",
+    "sEH": "Epoxide hydratase",
+    "seh": "Epoxide hydratase",
 }
 
 # ! TODO: readonly mode (block _process by alternative __init__ method?)
