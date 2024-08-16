@@ -1,0 +1,1 @@
+/work01/home/gtguo/miniconda3/envs/DEL/bin/python /data02/gtguo/DEL/pkg/train.py --name "ca9_full_-loss" --device "cuda:1" --enc_with_fp --enc_fp_gated --dec_with_fp --dec_with_dist --enc_fp_to_gat_feedback "add" --batch_size 2048
