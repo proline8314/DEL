@@ -10,9 +10,8 @@ from rdkit.Chem.SaltRemover import SaltRemover
 from torch_geometric.data import Data
 
 sys.path.append("/data02/gtguo/DEL/pkg")
-from utils.mol_feat import (get_edge_features, get_edge_index,
-                            get_mol_graph_attr, get_node_features)
-
+from ..utils.mol_feat import (get_edge_features, get_edge_index,
+                              get_mol_graph_attr, get_node_features)
 from .lmdb_dataset import LMDBDataset
 
 DATASET_DIR = "/data02/gtguo/DEL/data/dataset/acs.jcim.2c01608"

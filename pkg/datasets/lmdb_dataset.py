@@ -15,7 +15,8 @@ import torch
 from torch import Tensor
 from torch.utils.data import Dataset
 from tqdm import tqdm
-from utils.mixin import IFile
+
+from ..utils.mixin import IFile
 
 IndexType = Union[slice, Tensor, np.ndarray, Sequence]
 Keys = Union[Hashable, Tuple[Hashable]]
