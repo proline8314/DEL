@@ -28,10 +28,13 @@ def clean_up_mol(mol: Chem.Mol) -> Chem.Mol:
     mol_str = Chem.MolToSmiles(mol)
     try:
         mol = rdMolStandardize.Cleanup(mol)
-        mol = rdMolStandardize.FragmentParent(mol)
     except:
         LOGGER.error(f"Failed to clean up molecule: {mol_str}")
-        raise ValueError(f"Failed to clean up molecule: {mol_str}")
+        # raise ValueError(f"Failed to clean up molecule: {mol_str}")
+    try:
+        mol = rdMolStandardize.FragmentParent(mol)
+    except:
+        LOGGER.info(f"Failed to fragment molecule: {mol_str}")
     try:
         if USE_SR:
             mol = SR.StripMol(mol)
@@ -52,7 +55,7 @@ def get_mol_from_smiles(smiles: str, **kwargs) -> Chem.Mol:
     """
     Get rdkit mol object from smiles string.
     """
-    mol = Chem.MolFromSmiles(smiles, **kwargs)
+    mol = Chem.MolFromSmiles(smiles, sanitize=False, **kwargs)
     if mol is None:
         LOGGER.error(f"Failed to get mol from smiles: {smiles}")
         raise ValueError(f"Failed to get mol from smiles: {smiles}")

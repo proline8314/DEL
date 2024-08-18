@@ -9,6 +9,7 @@ from ..datasets.lmdb_dataset import LMDBDataset
 from ..utils.utils import standardize_smiles
 
 fpath = "E:/Research/del/data/raw/002-CAIX/ja9b01203_si_002.xlsx"
+output_path = "E:/Research/del/data/lmdb/002_CAIX.lmdb"
 
 bb_smiles = pd.read_excel(fpath, sheet_name="D2")
 mol_smiles = pd.read_excel(fpath, sheet_name="D5")
@@ -55,7 +56,48 @@ dataset = pd.merge(readouts, mol_smiles, on="cpd_id")
 dataset = pd.merge(dataset, scaffold, on="scaffold", suffixes=("", "_scaffold"))
 dataset = pd.merge(dataset, bb1, on="BB1", suffixes=("", "_bb1"))
 dataset = pd.merge(dataset, bb2, on="BB2", suffixes=("", "_bb2"))
-print(dataset.head())
-print(dataset.columns)
-print(dataset.shape)
-print(dataset.iloc[0])
+
+
+def index_to_dict_sample(index: int) -> Dict[str, Any]:
+    row = dataset.iloc[index]
+    return {
+        "smiles": row["smiles"],
+        "readout": {
+            "CA9": {
+                "target": np.array(
+                    [
+                        row["ca9_exp_r1"],
+                        row["ca9_exp_r2"],
+                        row["ca9_exp_r3"],
+                        row["ca9_exp_r4"],
+                    ],
+                    dtype=float,
+                ),
+                "control": np.array(
+                    [row["ca9_beads_r1"], row["ca9_beads_r2"]], dtype=float
+                ),
+            },
+            "HRP": {
+                "target": np.array([row["hrp_exp_r1"], row["hrp_exp_r2"]], dtype=float),
+                "control": np.array(
+                    [
+                        row["hrp_beads_r1"],
+                        row["hrp_beads_r2"],
+                        row["hrp_beads_r3"],
+                        row["hrp_beads_r4"],
+                    ],
+                    dtype=float,
+                ),
+            },
+        },
+        "bb1_smiles": row["smiles_scaffold"],
+        "bb2_smiles": row["smiles_bb1"],
+        "bb3_smiles": row["smiles_bb2"],
+    }
+
+
+dataset = [index_to_dict_sample(index) for index in tqdm.tqdm(range(len(dataset)))]
+# save dataset
+print(dataset[0])
+dataset = LMDBDataset.static_from_others(dataset, *os.path.split(output_path), forced_process=True)
+print(dataset[0])

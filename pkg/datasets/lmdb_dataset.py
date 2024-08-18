@@ -41,6 +41,7 @@ class LMDBDataset(Dataset, IFile):
         readonly: bool = False,
         dynamic: bool = False,
         forced_process: bool = False,
+        **kwargs,
     ):
         super(LMDBDataset, self).__init__()
 
@@ -51,6 +52,10 @@ class LMDBDataset(Dataset, IFile):
         self.source = source
         self.readonly = readonly
         self.dynamic = dynamic
+
+        self.map_size = (
+            4294967296 if "map_size" not in kwargs.keys() else kwargs["map_size"]
+        )
 
         if self.source == "raw":
             self.raw_dir = raw_dir
@@ -126,11 +131,13 @@ class LMDBDataset(Dataset, IFile):
             self.processed_env.close()
 
     @classmethod
-    def readonly_raw(cls, raw_dir: str, raw_fname: str):
-        return cls(raw_dir=raw_dir, raw_fname=raw_fname, source="raw", readonly=True)
+    def readonly_raw(cls, raw_dir: str, raw_fname: str, **kwargs):
+        return cls(
+            raw_dir=raw_dir, raw_fname=raw_fname, source="raw", readonly=True, **kwargs
+        )
 
     @classmethod
-    def override_raw(cls, raw_dir: str, raw_fname: str):
+    def override_raw(cls, raw_dir: str, raw_fname: str, **kwargs):
         return cls(
             raw_dir=raw_dir,
             raw_fname=raw_fname,
@@ -138,6 +145,7 @@ class LMDBDataset(Dataset, IFile):
             processed_fname=raw_fname,
             source="raw",
             forced_process=True,
+            **kwargs,
         )
 
     @classmethod
@@ -148,6 +156,7 @@ class LMDBDataset(Dataset, IFile):
         processed_dir: str,
         processed_fname: str,
         forced_process: bool = False,
+        **kwargs,
     ):
         return cls(
             raw_dir=raw_dir,
@@ -156,19 +165,13 @@ class LMDBDataset(Dataset, IFile):
             processed_fname=processed_fname,
             source="raw",
             forced_process=forced_process,
+            **kwargs,
         )
 
     @classmethod
-    def dynamic_from_raw(
-        cls,
-        raw_dir: str,
-        raw_fname: str,
-    ):
+    def dynamic_from_raw(cls, raw_dir: str, raw_fname: str, **kwargs):
         return cls(
-            raw_dir=raw_dir,
-            raw_fname=raw_fname,
-            source="raw",
-            dynamic=True,
+            raw_dir=raw_dir, raw_fname=raw_fname, source="raw", dynamic=True, **kwargs
         )
 
     @classmethod
@@ -178,6 +181,7 @@ class LMDBDataset(Dataset, IFile):
         processed_dir: str,
         processed_fname: str,
         forced_process: bool = False,
+        **kwargs,
     ):
         # ! Fix the bug
         """
@@ -210,15 +214,12 @@ class LMDBDataset(Dataset, IFile):
             processed_fname=processed_fname,
             source="others",
             forced_process=forced_process,
+            **kwargs,
         )
 
     @classmethod
-    def dynamic_from_others(cls, dataset: Dataset):
-        return cls(
-            source_dataset=dataset,
-            source="others",
-            dynamic=True,
-        )
+    def dynamic_from_others(cls, dataset: Dataset, **kwargs):
+        return cls(source_dataset=dataset, source="others", dynamic=True, **kwargs)
 
     @classmethod
     def update_process_fn(
@@ -394,7 +395,7 @@ class LMDBDataset(Dataset, IFile):
             readahead=False,
             meminit=False,
             max_readers=1,
-            map_size=1099511627776,
+            map_size=self.map_size,
         )
         txn = env.begin(write=write)
         return env, txn
