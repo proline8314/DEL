@@ -35,6 +35,6 @@ def handle_sample(sample: dict) -> dict:
 
 
 dataset = LMDBDataset.update_process_fn(handle_sample).override_raw(
-    *os.path.split(dataset_fpath)
+    *os.path.split(dataset_fpath), map_size=1024**3 * 16,
 )
 print(dataset[0])
