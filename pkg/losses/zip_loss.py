@@ -35,6 +35,8 @@ class ZIPLoss(nn.Module):
         count_is_zero = (count == 0).type(torch.float)
         nll = count_is_zero * zero_nll + (1 - count_is_zero) * non_zero_nll
         # average over batches and labels
+        nll[nll.isnan()] = 0.
+        nll[nll.isinf()] = 0.
         nll = torch.mean(nll)
         return nll
 
@@ -96,6 +98,8 @@ class CorrectedZIPLoss(nn.Module):
         count_is_zero = (count == 0).type(torch.float)
         nll = count_is_zero * zero_nll + (1 - count_is_zero) * non_zero_nll
         # average over batches and labels
+        nll[nll.isnan()] = 0.
+        nll[nll.isinf()] = 0.
         nll = torch.mean(nll)
         return nll
 

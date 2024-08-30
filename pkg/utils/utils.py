@@ -55,7 +55,7 @@ def get_mol_from_smiles(smiles: str, **kwargs) -> Chem.Mol:
     """
     Get rdkit mol object from smiles string.
     """
-    mol = Chem.MolFromSmiles(smiles, sanitize=False, **kwargs)
+    mol = Chem.MolFromSmiles(smiles, **kwargs)
     if mol is None:
         LOGGER.error(f"Failed to get mol from smiles: {smiles}")
         raise ValueError(f"Failed to get mol from smiles: {smiles}")

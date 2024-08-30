@@ -99,5 +99,5 @@ def index_to_dict_sample(index: int) -> Dict[str, Any]:
 dataset = [index_to_dict_sample(index) for index in tqdm.tqdm(range(len(dataset)))]
 # save dataset
 print(dataset[0])
-dataset = LMDBDataset.static_from_others(dataset, *os.path.split(output_path), forced_process=True)
+dataset = LMDBDataset.static_from_others(dataset, *os.path.split(output_path), forced_process=True, map_size=1024**3 * 16)
 print(dataset[0])
