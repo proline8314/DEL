@@ -1,10 +1,12 @@
 import copy
+import gc
 import logging
 import os
 import pickle
 import sys
 from collections.abc import Sequence
 from functools import lru_cache
+from multiprocessing import Pool
 from typing import (Any, Callable, Dict, Hashable, Literal, NewType, Optional,
                     Tuple, Union)
 
@@ -15,7 +17,8 @@ import torch
 from torch import Tensor
 from torch.utils.data import Dataset
 from tqdm import tqdm
-from utils.mixin import IFile
+
+from ..utils.mixin import IFile
 
 IndexType = Union[slice, Tensor, np.ndarray, Sequence]
 Keys = Union[Hashable, Tuple[Hashable]]
@@ -40,6 +43,7 @@ class LMDBDataset(Dataset, IFile):
         readonly: bool = False,
         dynamic: bool = False,
         forced_process: bool = False,
+        **kwargs,
     ):
         super(LMDBDataset, self).__init__()
 
@@ -50,6 +54,16 @@ class LMDBDataset(Dataset, IFile):
         self.source = source
         self.readonly = readonly
         self.dynamic = dynamic
+
+        self.map_size = (
+            1099511627776 if "map_size" not in kwargs.keys() else kwargs["map_size"]
+        )
+        self.nprocs = 1 if "nprocs" not in kwargs.keys() else kwargs["nprocs"]
+        self.process = (
+            self.process
+            if "process_fn" not in kwargs.keys()
+            else copy.deepcopy(kwargs["process_fn"])
+        )
 
         if self.source == "raw":
             self.raw_dir = raw_dir
@@ -125,11 +139,13 @@ class LMDBDataset(Dataset, IFile):
             self.processed_env.close()
 
     @classmethod
-    def readonly_raw(cls, raw_dir: str, raw_fname: str):
-        return cls(raw_dir=raw_dir, raw_fname=raw_fname, source="raw", readonly=True)
+    def readonly_raw(cls, raw_dir: str, raw_fname: str, **kwargs):
+        return cls(
+            raw_dir=raw_dir, raw_fname=raw_fname, source="raw", readonly=True, **kwargs
+        )
 
     @classmethod
-    def override_raw(cls, raw_dir: str, raw_fname: str):
+    def override_raw(cls, raw_dir: str, raw_fname: str, **kwargs):
         return cls(
             raw_dir=raw_dir,
             raw_fname=raw_fname,
@@ -137,6 +153,7 @@ class LMDBDataset(Dataset, IFile):
             processed_fname=raw_fname,
             source="raw",
             forced_process=True,
+            **kwargs,
         )
 
     @classmethod
@@ -147,6 +164,7 @@ class LMDBDataset(Dataset, IFile):
         processed_dir: str,
         processed_fname: str,
         forced_process: bool = False,
+        **kwargs,
     ):
         return cls(
             raw_dir=raw_dir,
@@ -155,19 +173,13 @@ class LMDBDataset(Dataset, IFile):
             processed_fname=processed_fname,
             source="raw",
             forced_process=forced_process,
+            **kwargs,
         )
 
     @classmethod
-    def dynamic_from_raw(
-        cls,
-        raw_dir: str,
-        raw_fname: str,
-    ):
+    def dynamic_from_raw(cls, raw_dir: str, raw_fname: str, **kwargs):
         return cls(
-            raw_dir=raw_dir,
-            raw_fname=raw_fname,
-            source="raw",
-            dynamic=True,
+            raw_dir=raw_dir, raw_fname=raw_fname, source="raw", dynamic=True, **kwargs
         )
 
     @classmethod
@@ -177,6 +189,7 @@ class LMDBDataset(Dataset, IFile):
         processed_dir: str,
         processed_fname: str,
         forced_process: bool = False,
+        **kwargs,
     ):
         # ! Fix the bug
         """
@@ -209,15 +222,12 @@ class LMDBDataset(Dataset, IFile):
             processed_fname=processed_fname,
             source="others",
             forced_process=forced_process,
+            **kwargs,
         )
 
     @classmethod
-    def dynamic_from_others(cls, dataset: Dataset):
-        return cls(
-            source_dataset=dataset,
-            source="others",
-            dynamic=True,
-        )
+    def dynamic_from_others(cls, dataset: Dataset, **kwargs):
+        return cls(source_dataset=dataset, source="others", dynamic=True, **kwargs)
 
     @classmethod
     def update_process_fn(
@@ -226,7 +236,8 @@ class LMDBDataset(Dataset, IFile):
         r"""Passing a static process function to the class"""
 
         class NewCls(cls):
-            def process(self, sample: Dict[Hashable, Any]) -> Dict[Hashable, Any]:
+            @staticmethod
+            def process(sample: Dict[Hashable, Any]) -> Dict[Hashable, Any]:
                 return process_fn(sample)
 
         return NewCls
@@ -298,9 +309,15 @@ class LMDBDataset(Dataset, IFile):
             env, txn = self.load(self.processed_fpath, write=False)
             return env, txn
         elif self.source == "raw":
-            self._data = self._process_raw()
+            if self.nprocs > 1:
+                self._data = self._process_raw_multiprocessing()
+            else:
+                self._data = self._process_raw()
         else:
-            self._data = self._process_others()
+            if self.nprocs > 1:
+                self._data = self._process_others_multiprocessing()
+            else:
+                self._data = self._process_others()
 
         if dynamic:
             return None, None
@@ -331,7 +348,92 @@ class LMDBDataset(Dataset, IFile):
             data[idx] = sample
         return data
 
-    def process(self, sample: Dict[Hashable, Any]) -> Any:
+    def _process_raw_multiprocessing(self) -> Dict[Hashable, Any]:
+        data = {}
+
+        global copy_process
+        copy_process = copy.copy(self.process)
+
+        # TODO ! magic number
+        # TODO wrap in a function
+        # ? Integrity of self._data for dynamic processing
+        # ? Here the saving process circumvents the assign_txn function
+
+        maximum_dataset_slice = 10_000
+        # maximum_dataset_slice = 100_000
+        range_generators = [
+            range(
+                maximum_dataset_slice * i,
+                min(maximum_dataset_slice * (i + 1), self.get_txn_len(self.raw_txn)),
+            )
+            for i in range(
+                np.ceil(self.get_txn_len(self.raw_txn) / maximum_dataset_slice).astype(
+                    int
+                )
+            )
+        ]
+
+        if len(range_generators) > 1 and self.dynamic:
+            logging.warning(
+                "The dataset is too large to be processed in one slice, dynamic processing is not supported."
+            )
+            sys.exit(1)
+
+        logging.info("processing dataset with multiprocessing...")
+        logging.info(f"nprocs: {self.nprocs}")
+        logging.info(f"total slices: {len(range_generators)}")
+
+        for outer_idx, range_generator in enumerate(range_generators):
+            with Pool(self.nprocs) as pool:
+                for idx, sample in tqdm(
+                    enumerate(
+                        pool.imap(
+                            copy_process,
+                            (
+                                self._get_from_txn(self.raw_txn, i)
+                                for i in range_generator
+                            ),
+                            chunksize=100,
+                        )
+                    ),
+                    total=len(range_generator),
+                ):
+                    data_idx = idx + maximum_dataset_slice * outer_idx
+                    data[data_idx] = sample
+
+            # logging.info(f"Hit the maximum dataset slice: {maximum_dataset_slice}")
+
+            self._data = data
+            self.save(self.processed_fpath)
+
+            # ! release memory
+            self._data = None
+            del data
+            gc.collect()
+            data = {}
+            
+        return data
+
+    def _process_others_multiprocessing(self) -> Dict[Hashable, Any]:
+        # TODO multiprocessing update
+        data = {}
+        logging.info("processing dataset...")
+        with Pool(self.nprocs) as pool:
+            for idx, sample in tqdm(
+                enumerate(
+                    pool.imap(
+                        self.process,
+                        self.source_dataset,
+                        chunksize=100,
+                    )
+                ),
+                total=len(self.source_dataset),
+            ):
+                data[idx] = sample
+        return data
+
+    @staticmethod
+    def process(sample: Dict[Hashable, Any]) -> Any:
         r"""Users override this method to achieve custom functionality"""
         return sample
 
@@ -365,6 +467,10 @@ class LMDBDataset(Dataset, IFile):
     def _dynamic_get(self, index):
         return self._data[index]
 
+    @lru_cache(maxsize=16)
+    def _get_from_txn(self, txn: lmdb.Transaction, index: int):
+        return pickle.loads(txn.get(f"{index}".encode()))
+
     @property
     def get_fn(self) -> Any:
         # TODO refresh
@@ -393,7 +499,7 @@ class LMDBDataset(Dataset, IFile):
             readahead=False,
             meminit=False,
             max_readers=1,
-            map_size=1099511627776,
+            map_size=self.map_size,
         )
         txn = env.begin(write=write)
         return env, txn
@@ -534,3 +640,9 @@ class LMDBDataset(Dataset, IFile):
                 os.path.join(self.processed_dir, f"{false_dataset_name}.lmdb")
             )
         return true_dataset, false_dataset
+    
+    def split_with_idx(self, idx: IndexType) -> Tuple["Dataset", "Dataset"]:
+        r"""Split the dataset with the given indices"""
+        return self.index_select(idx), self.index_select(
+            [i for i in self.indices if i not in idx]
+        )

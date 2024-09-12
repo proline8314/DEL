@@ -1,20 +1,21 @@
 import argparse
 import logging
 import os
+import sys
 
 import numpy as np
+import pandas as pd
 import tensorboard as tb
 import torch
 import torch.nn as nn
 import torch.optim as optim
+from datasets.chembl_dataset import FULL_NAME_DICT, ChemBLActivityDataset
+from datasets.graph_dataset import GraphDataset
+from losses.zip_loss import CorrectedZIPLoss, ZIPLoss
+from models.ref_net import DELRefDecoder, DELRefEncoder, DELRefNet
 from sklearn.model_selection import train_test_split
 from torch.utils.tensorboard import SummaryWriter
 from torch_geometric.loader import DataLoader
-
-from .datasets.lmdb_dataset import LMDBDataset
-from .losses.zip_loss import CorrectedZIPLoss, ZIPLoss
-from .models.ref_net_v2 import (BidirectionalPipe, GraphAttnEncoder,
-                                PyGDataInputLayer, RefNetV2, RegressionHead)
 
 if __name__ == "__main__":
     # Set up logging
@@ -24,63 +25,73 @@ if __name__ == "__main__":
     # Set up arguments
     parser = argparse.ArgumentParser()
     # general
-    parser.add_argument("--name", type=str, default="ca9_zip")
+    parser.add_argument("--name", type=str, default="ca9_full")
     parser.add_argument("--seed", type=int, default=4)
     parser.add_argument("--device", type=str, default="cuda")
-    parser.add_argument("--batch_size", type=int, default=3072)
+    parser.add_argument("--batch_size", type=int, default=4096)
     parser.add_argument("--epochs", type=int, default=100)
     parser.add_argument("--lr", type=float, default=3e-4)
     parser.add_argument("--weight_decay", type=float, default=1e-4)
     parser.add_argument("--log_interval", type=int, default=5)
     parser.add_argument("--save_interval", type=int, default=5)
-    parser.add_argument("--save_path", type=str, default="E:\Research\del\data\weights")
-    parser.add_argument("--update_loss", type=int, default=0)
-    # dataset
     parser.add_argument(
-        "--dataset_fpath",
-        type=str,
-        default="E:/Research/del/data/lmdb/002_CAIX_feat.lmdb",
+        "--save_path", type=str, default="/data02/gtguo/DEL/data/weights/refnet/"
     )
-    parser.add_argument("--target_name", type=str, default="CA9")
-    parser.add_argument("--map_size", type=int, default=1024**3 * 16)
+    parser.add_argument("--load_path", type=str, default=None)
+    parser.add_argument("--load", action="store_true")
+    parser.add_argument("--update_loss", action="store_true")
+    # dataset
+    parser.add_argument("--target_name", type=str, default="ca9")
+    parser.add_argument("--fp_size", type=int, default=2048)
+    parser.add_argument("--forced_reload", action="store_true")
 
     # data split
     parser.add_argument("--train_size", type=float, default=0.8)
     parser.add_argument("--valid_size", type=float, default=0.2)
-
     # dataloader
-    parser.add_argument("--num_workers", type=int, default=0)
+    parser.add_argument("--num_workers", type=int, default=8)
+    # model encoder
+    parser.add_argument("--enc_node_feat_dim", type=int, default=19)
+    parser.add_argument("--enc_edge_feat_dim", type=int, default=2)
+    parser.add_argument("--enc_node_embedding_size", type=int, default=64)
+    parser.add_argument("--enc_edge_embedding_size", type=int, default=64)
+    parser.add_argument("--enc_n_layers", type=int, default=3)
+    parser.add_argument("--enc_gat_n_heads", type=int, default=4)
+    parser.add_argument("--enc_gat_ffn_ratio", type=int, default=4)
+    parser.add_argument("--enc_with_fp", action="store_true")
+    parser.add_argument("--enc_fp_embedding_size", type=int, default=32)
+    parser.add_argument("--enc_fp_ffn_size", type=int, default=128)
+    parser.add_argument("--enc_fp_gated", action="store_true")
+    parser.add_argument("--enc_fp_n_heads", type=int, default=4)
+    parser.add_argument("--enc_fp_size", type=int, default=256)
+    parser.add_argument("--enc_fp_to_gat_feedback", type=str, default="add")
+    parser.add_argument("--enc_gat_to_fp_pooling", type=str, default="mean")
 
-    # model
-    parser.add_argument("--synthon_node_feat_dim", type=int, default=2048)
-    parser.add_argument("--synthon_node_emb_dim", type=int, default=64)
-    parser.add_argument("--synthon_node_emb_method", type=str, default="Embedding-Linear")
-    parser.add_argument("--synthon_token_size", type=int, default=16)
-    parser.add_argument("--synthon_edge_emb_dim", type=int, default=64)
-    parser.add_argument("--mol_node_feat_dim", type=int, default=147)
-    parser.add_argument("--mol_node_emb_dim", type=int, default=64)
-    parser.add_argument("--mol_node_emb_method", type=str, default="Linear")
-    parser.add_argument("--mol_edge_feat_dim", type=int, default=5)
-    parser.add_argument("--mol_edge_emb_dim", type=int, default=64)
-    parser.add_argument("--mol_edge_emb_method", type=str, default="Linear")
-    parser.add_argument("--encoder_layers", type=int, default=5)
+    # model decoder
+    parser.add_argument("--dec_node_input_size", type=int, default=64)
+    parser.add_argument("--dec_node_emb_size", type=int, default=64)
+    parser.add_argument("--dec_fp_input_size", type=int, default=32)
+    parser.add_argument("--dec_fp_emb_size", type=int, default=64)
+    parser.add_argument("--dec_output_size", type=int, default=2)
+    parser.add_argument("--dec_with_fp", action="store_true")
+    parser.add_argument("--dec_with_dist", action="store_true")
 
     # loss
     parser.add_argument("--target_size", type=int, default=4)
     parser.add_argument("--label_size", type=int, default=6)
     parser.add_argument("--matrix_size", type=int, default=2)
-    parser.add_argument("--loss_sigma_correction", type=int, default=0)
+    parser.add_argument("--loss_sigma_correction", action="store_true")
 
     # record
     parser.add_argument(
-        "--record_path", type=str, default="E:/Research/del/data/records/refnet"
+        "--record_path", type=str, default="/data02/gtguo/DEL/data/records/refnet/"
     )
 
     # scheduler
-    parser.add_argument("--lr_schedule", type=int, default=0)
+    parser.add_argument("--lr_schedule", action="store_true")
     parser.add_argument("--warmup_ratio", type=float, default=0.1)
     parser.add_argument("--decay", type=float, default=0.1)
-    parser.add_argument("--warmup_lr", type=float, default=2e-3)
+    parser.add_argument("--warmup_lr", type=float, default=5e-3)
 
     args = parser.parse_args()
 
@@ -105,52 +116,34 @@ if __name__ == "__main__":
     np.random.seed(seed)
 
     # Model
-    synthon_handler = PyGDataInputLayer(
-        args.synthon_node_feat_dim,
-        args.synthon_node_emb_dim,
-        args.synthon_node_emb_method,
-        None,
-        args.synthon_edge_emb_dim,
-        "None",
-        token_size=args.synthon_token_size,
+    encoder = DELRefEncoder(
+        node_feat_dim=args.enc_node_feat_dim,
+        edge_feat_dim=args.enc_edge_feat_dim,
+        node_embedding_size=args.enc_node_embedding_size,
+        edge_embedding_size=args.enc_edge_embedding_size,
+        n_layers=args.enc_n_layers,
+        gat_n_heads=args.enc_gat_n_heads,
+        gat_ffn_ratio=args.enc_gat_ffn_ratio,
+        with_fp=args.enc_with_fp,
+        fp_embedding_size=args.enc_fp_embedding_size,
+        fp_ffn_size=args.enc_fp_ffn_size,
+        fp_gated=args.enc_fp_gated,
+        fp_n_heads=args.enc_fp_n_heads,
+        fp_size=args.enc_fp_size,
+        fp_to_gat_feedback=args.enc_fp_to_gat_feedback,
+        gat_to_fp_pooling=args.enc_gat_to_fp_pooling,
     ).to(device)
-    mol_handler = PyGDataInputLayer(
-        args.mol_node_feat_dim,
-        args.mol_node_emb_dim,
-        args.mol_node_emb_method,
-        args.mol_edge_feat_dim,
-        args.mol_edge_emb_dim,
-        args.mol_edge_emb_method,
+    decoder = DELRefDecoder(
+        node_input_size=args.dec_node_input_size,
+        node_emb_size=args.dec_node_emb_size,
+        fp_input_size=args.dec_fp_input_size,
+        fp_emb_size=args.dec_fp_emb_size,
+        output_size=args.dec_output_size,
+        output_activation=torch.exp,
+        with_fp=args.dec_with_fp,
+        with_dist=args.dec_with_dist,
     ).to(device)
-    synthon_encoder = GraphAttnEncoder(
-        args.synthon_node_emb_dim,
-        args.synthon_edge_emb_dim,
-        num_layers=args.encoder_layers,
-    ).to(device)
-    mol_encoder = GraphAttnEncoder(
-        args.mol_node_emb_dim, args.mol_edge_emb_dim, num_layers=args.encoder_layers
-    ).to(device)
-    pipes = [
-        BidirectionalPipe(args.synthon_node_emb_dim, args.mol_node_emb_dim).to(device)
-        for _ in range(args.encoder_layers)
-    ]
-    yield_head = RegressionHead(
-        args.synthon_edge_emb_dim, args.mol_edge_emb_dim, 1, "sigmoid"
-    ).to(device)
-    affinity_head = RegressionHead(
-        args.mol_node_emb_dim, args.mol_node_emb_dim, 2, None
-    ).to(device)
-
-    model = RefNetV2(
-        synthon_feat_input=synthon_handler,
-        molecule_feat_input=mol_handler,
-        synthon_encoder=synthon_encoder,
-        molecule_encoder=mol_encoder,
-        bidirectional_pipes=pipes,
-        reaction_yield_head=yield_head,
-        affinity_head=affinity_head,
-    ).to(device)
-
+    model = DELRefNet(encoder, decoder).to(device)
     logger.info(f"Model has {sum(p.numel() for p in model.parameters())} parameters")
 
     # Loss
@@ -205,18 +198,19 @@ if __name__ == "__main__":
         )
 
     # Datasets
-    print("Reading dataset")
-    del_dataset = LMDBDataset.readonly_raw(
-        *os.path.split(args.dataset_fpath), map_size=args.map_size
+    del_dataset = GraphDataset(
+        forced_reload=args.forced_reload,
+        target_name=args.target_name,
+        fpsize=args.fp_size,
     )
-    print("Splitting dataset")
-    idxs = np.arange(len(del_dataset))
-    train_idxs, val_idxs = train_test_split(
-        idxs, train_size=args.train_size, test_size=args.valid_size
+    """
+    chembl_dataset = ChemBLActivityDataset(
+        FULL_NAME_DICT[args.target_name], update_target=False
     )
-    train_idxs = train_idxs.tolist()
-    print("Creating dataloaders")
-    del_train_dataset, del_val_dataset = del_dataset.split_with_idx(train_idxs)
+    """
+    del_train_dataset, del_val_dataset = train_test_split(
+        del_dataset, test_size=0.2, random_state=seed
+    )
 
     # DataLoaders
     del_train_loader = DataLoader(
@@ -233,30 +227,33 @@ if __name__ == "__main__":
     )
 
     # Load model
+    if args.load_path and args.load:
+        model.load_state_dict(torch.load(os.path.join(args.load_path, "model.pt")))
+        # criterion.load_state_dict(torch.load(os.path.join(args.load_path, "criterion.pt")))
 
     if not os.path.exists(os.path.join(args.save_path, args.name)):
         os.makedirs(os.path.join(args.save_path, args.name))
 
     # Train
 
-    def move_data_to_device(data):
-        for k, v in data.items():
-            if isinstance(v, dict):
-                move_data_to_device(v)
-            else:
-                data[k] = v.to(device)
-        return data
-
     for epoch in range(args.epochs):
         model.train()
         for i, data in enumerate(del_train_loader):
-            data = move_data_to_device(data)
+            data = data.to(device)
             optimizer.zero_grad()
-            output = model(data["bb_pyg_data"], data["pyg_data"])
+            output = model(
+                data.x,
+                data.edge_index,
+                data.edge_attr,
+                data.node_bbidx,
+                data.batch,
+                data.bbfp.view(data.batch_size, -1, args.fp_size),
+                data.node_dist,
+            )
             y = torch.cat(
                 (
-                    data["readout"][args.target_name]["target"],
-                    data["readout"][args.target_name]["control"],
+                    data.y_target.view(data.batch_size, args.target_size),
+                    data.y_matrix.view(data.batch_size, args.matrix_size),
                 ),
                 dim=1,
             )
@@ -265,12 +262,10 @@ if __name__ == "__main__":
             optimizer.step()
             if i % args.log_interval == 0:
                 logger.info(
-                    f"Epoch {epoch}, Iteration {i}, Train Loss: {loss.detach().cpu().item()}, LR: {optimizer.param_groups[0]['lr']}"
+                    f"Epoch {epoch}, Iteration {i}, Train Loss: {loss.item()}, LR: {optimizer.param_groups[0]['lr']}"
                 )
                 writer.add_scalar(
-                    "train/loss",
-                    loss.detach().cpu().item(),
-                    epoch * len(del_train_loader) + i,
+                    "train/loss", loss.item(), epoch * len(del_train_loader) + i
                 )
                 if args.loss_sigma_correction:
                     _, tgt_nll, mat_nll, tgt_mse, mat_mse = criterion(
@@ -278,22 +273,22 @@ if __name__ == "__main__":
                     )
                     writer.add_scalar(
                         "train/tgt_nll",
-                        tgt_nll.detach().cpu().item(),
+                        tgt_nll.item(),
                         epoch * len(del_train_loader) + i,
                     )
                     writer.add_scalar(
                         "train/mat_nll",
-                        mat_nll.detach().cpu().item(),
+                        mat_nll.item(),
                         epoch * len(del_train_loader) + i,
                     )
                     writer.add_scalar(
                         "train/tgt_mse",
-                        tgt_mse.detach().cpu().item(),
+                        tgt_mse.item(),
                         epoch * len(del_train_loader) + i,
                     )
                     writer.add_scalar(
                         "train/mat_mse",
-                        mat_mse.detach().cpu().item(),
+                        mat_mse.item(),
                         epoch * len(del_train_loader) + i,
                     )
                 writer.add_scalar(
@@ -319,37 +314,45 @@ if __name__ == "__main__":
                 tgt_mses = []
                 mat_mses = []
             for i, data in enumerate(del_val_loader):
-                data = move_data_to_device(data)
-                output = model(data["bb_pyg_data"], data["pyg_data"])
+                data = data.to(device)
+                output = model(
+                    data.x,
+                    data.edge_index,
+                    data.edge_attr,
+                    data.node_bbidx,
+                    data.batch,
+                    data.bbfp.view(data.batch_size, -1, args.fp_size),
+                    data.node_dist,
+                )
                 if args.loss_sigma_correction:
                     loss, tgt_nll, mat_nll, tgt_mse, mat_mse = criterion(
                         output,
                         torch.cat(
                             (
-                                data["readout"][args.target_name]["target"],
-                                data["readout"][args.target_name]["control"],
+                                data.y_target.view(data.batch_size, args.target_size),
+                                data.y_matrix.view(data.batch_size, args.matrix_size),
                             ),
                             dim=1,
                         ),
                         return_loss=True,
                     )
-                    losses.append(loss.detach().cpu().item())
-                    tgt_nlls.append(tgt_nll.detach().cpu().item())
-                    mat_nlls.append(mat_nll.detach().cpu().item())
-                    tgt_mses.append(tgt_mse.detach().cpu().item())
-                    mat_mses.append(mat_mse.detach().cpu().item())
+                    losses.append(loss.item())
+                    tgt_nlls.append(tgt_nll.item())
+                    mat_nlls.append(mat_nll.item())
+                    tgt_mses.append(tgt_mse.item())
+                    mat_mses.append(mat_mse.item())
                 else:
                     loss = criterion(
                         output,
                         torch.cat(
                             (
-                                data["readout"][args.target_name]["target"],
-                                data["readout"][args.target_name]["control"],
+                                data.y_target.view(data.batch_size, args.target_size),
+                                data.y_matrix.view(data.batch_size, args.matrix_size),
                             ),
                             dim=1,
                         ),
                     )
-                    losses.append(loss.detach().cpu().item())
+                    losses.append(loss.item())
             val_loss = np.mean(losses)
             logger.info(f"Epoch {epoch}, Validation Loss: {val_loss}")
             writer.add_scalar("val/loss", val_loss, epoch)
