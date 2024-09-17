@@ -9,6 +9,7 @@ import torch.nn as nn
 import torch.optim as optim
 from sklearn.model_selection import train_test_split
 from torch.utils.tensorboard import SummaryWriter
+from torch_geometric.data import Data
 from torch_geometric.loader import DataLoader
 
 from .datasets.lmdb_dataset import LMDBDataset
@@ -34,7 +35,7 @@ if __name__ == "__main__":
     parser.add_argument("--log_interval", type=int, default=5)
     parser.add_argument("--save_interval", type=int, default=5)
     parser.add_argument("--save_path", type=str, default="E:\Research\del\data\weights")
-    parser.add_argument("--update_loss", type=int, default=0)
+    parser.add_argument("--update_loss", action="store_true")
     # dataset
     parser.add_argument(
         "--dataset_fpath",
@@ -49,12 +50,15 @@ if __name__ == "__main__":
     parser.add_argument("--valid_size", type=float, default=0.2)
 
     # dataloader
-    parser.add_argument("--num_workers", type=int, default=0)
+    parser.add_argument("--num_workers", type=int, default=8)
+    parser.add_argument("--collate_dataset", action="store_true")
 
     # model
     parser.add_argument("--synthon_node_feat_dim", type=int, default=2048)
     parser.add_argument("--synthon_node_emb_dim", type=int, default=64)
-    parser.add_argument("--synthon_node_emb_method", type=str, default="Embedding-Linear")
+    parser.add_argument(
+        "--synthon_node_emb_method", type=str, default="Embedding-Linear"
+    )
     parser.add_argument("--synthon_token_size", type=int, default=16)
     parser.add_argument("--synthon_edge_emb_dim", type=int, default=64)
     parser.add_argument("--mol_node_feat_dim", type=int, default=147)
@@ -69,7 +73,7 @@ if __name__ == "__main__":
     parser.add_argument("--target_size", type=int, default=4)
     parser.add_argument("--label_size", type=int, default=6)
     parser.add_argument("--matrix_size", type=int, default=2)
-    parser.add_argument("--loss_sigma_correction", type=int, default=0)
+    parser.add_argument("--loss_sigma_correction", action="store_true")
 
     # record
     parser.add_argument(
@@ -77,7 +81,7 @@ if __name__ == "__main__":
     )
 
     # scheduler
-    parser.add_argument("--lr_schedule", type=int, default=0)
+    parser.add_argument("--lr_schedule", action="store_true")
     parser.add_argument("--warmup_ratio", type=float, default=0.1)
     parser.add_argument("--decay", type=float, default=0.1)
     parser.add_argument("--warmup_lr", type=float, default=2e-3)
@@ -218,18 +222,52 @@ if __name__ == "__main__":
     print("Creating dataloaders")
     del_train_dataset, del_val_dataset = del_dataset.split_with_idx(train_idxs)
 
+    def collate_fn(sample):
+        """
+        sample: {
+            "bb_pyg_data": {"x": np.array, "edge_idx": np.array},
+            "pyg_data": {"x": np.array, "edge_idx": np.array, "edge_attr": np.array},
+            "readout": dict_containing_np_arrays,
+        }
+        """
+        _sample = {}
+        bb_pyg_data = Data(
+            x=torch.LongTensor(sample["bb_pyg_data"]["x"]),
+            edge_index=torch.LongTensor(sample["bb_pyg_data"]["edge_idx"]),
+        )
+        _sample["bb_pyg_data"] = bb_pyg_data
+        pyg_data = Data(
+            x=torch.LongTensor(sample["pyg_data"]["x"]),
+            edge_index=torch.LongTensor(sample["pyg_data"]["edge_idx"]),
+            edge_attr=torch.LongTensor(sample["pyg_data"]["edge_attr"]),
+        )
+        _sample["pyg_data"] = pyg_data
+        _sample["readout"] = to_tensor(sample["readout"])
+
+        return _sample
+
+    def to_tensor(nested_dict: dict) -> dict:
+        for k, v in nested_dict.items():
+            if isinstance(v, dict):
+                to_tensor(v)
+            else:
+                nested_dict[k] = torch.tensor(v)
+        return nested_dict
+
     # DataLoaders
     del_train_loader = DataLoader(
         del_train_dataset,
         batch_size=args.batch_size,
         shuffle=True,
         num_workers=args.num_workers,
+        collate_fn=collate_fn if args.collate_dataset else None,
     )
     del_val_loader = DataLoader(
         del_val_dataset,
         batch_size=args.batch_size,
         shuffle=False,
         num_workers=args.num_workers,
+        collate_fn=collate_fn if args.collate_dataset else None,
     )
 
     # Load model
