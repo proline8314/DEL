@@ -643,6 +643,4 @@ class LMDBDataset(Dataset, IFile):
     
     def split_with_idx(self, idx: IndexType) -> Tuple["Dataset", "Dataset"]:
         r"""Split the dataset with the given indices"""
-        return self.index_select(idx), self.index_select(
-            [i for i in self.indices if i not in idx]
-        )
+        return self.index_select(idx), self.index_select(np.setdiff1d(np.arange(len(self)), idx).tolist())

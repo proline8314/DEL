@@ -8,6 +8,7 @@ import torch
 import torch.nn as nn
 import torch.optim as optim
 from sklearn.model_selection import train_test_split
+from torch.utils.data import Dataset
 from torch.utils.tensorboard import SummaryWriter
 from torch_geometric.data import Data
 from torch_geometric.loader import DataLoader
@@ -25,7 +26,7 @@ if __name__ == "__main__":
     # Set up arguments
     parser = argparse.ArgumentParser()
     # general
-    parser.add_argument("--name", type=str, default="ca9_zip")
+    parser.add_argument("--name", type=str, default="ca9_czip")
     parser.add_argument("--seed", type=int, default=4)
     parser.add_argument("--device", type=str, default="cuda")
     parser.add_argument("--batch_size", type=int, default=3072)
@@ -209,65 +210,80 @@ if __name__ == "__main__":
         )
 
     # Datasets
+    class CollateDataset(Dataset):
+        def __init__(self, dataset):
+            self.dataset = dataset
+
+        def __len__(self):
+            return len(self.dataset)
+
+        def __getitem__(self, idx):
+            return self.collate_fn(self.dataset[idx])
+        
+        def collate_fn(self, sample):
+            """
+            sample: {
+                "bb_pyg_data": {"x": np.array, "edge_idx": np.array},
+                "pyg_data": {"x": np.array, "edge_idx": np.array, "edge_attr": np.array},
+                "readout": dict_containing_np_arrays,
+            }
+            """
+            _sample = {}
+            bb_pyg_data = Data(
+                x=torch.LongTensor(sample["bb_pyg_data"]["x"]),
+                edge_index=torch.LongTensor(sample["bb_pyg_data"]["edge_idx"]),
+            )
+            _sample["bb_pyg_data"] = bb_pyg_data
+            pyg_data = Data(
+                x=torch.tensor(sample["pyg_data"]["x"]),
+                edge_index=torch.LongTensor(sample["pyg_data"]["edge_idx"]),
+                edge_attr=torch.tensor(sample["pyg_data"]["edge_attr"]),
+            )
+            _sample["pyg_data"] = pyg_data
+            _sample["readout"] = self.to_tensor(sample["readout"])
+
+            return _sample
+
+        def to_tensor(self, nested_dict: dict) -> dict:
+            for k, v in nested_dict.items():
+                if isinstance(v, dict):
+                    self.to_tensor(v)
+                else:
+                    nested_dict[k] = torch.tensor(v)
+            return nested_dict
+        
     print("Reading dataset")
     del_dataset = LMDBDataset.readonly_raw(
         *os.path.split(args.dataset_fpath), map_size=args.map_size
     )
+
     print("Splitting dataset")
-    idxs = np.arange(len(del_dataset))
-    train_idxs, val_idxs = train_test_split(
-        idxs, train_size=args.train_size, test_size=args.valid_size
-    )
-    train_idxs = train_idxs.tolist()
-    print("Creating dataloaders")
+    # idxs = np.arange(len(del_dataset))
+    # train_idxs, val_idxs = train_test_split(
+    #     idxs, train_size=args.train_size, test_size=args.valid_size
+    # )
+    # train_idxs = train_idxs.tolist()
+    train_idxs = np.random.choice(len(del_dataset), int(len(del_dataset) * args.train_size), replace=False).tolist()
+    
     del_train_dataset, del_val_dataset = del_dataset.split_with_idx(train_idxs)
 
-    def collate_fn(sample):
-        """
-        sample: {
-            "bb_pyg_data": {"x": np.array, "edge_idx": np.array},
-            "pyg_data": {"x": np.array, "edge_idx": np.array, "edge_attr": np.array},
-            "readout": dict_containing_np_arrays,
-        }
-        """
-        _sample = {}
-        bb_pyg_data = Data(
-            x=torch.LongTensor(sample["bb_pyg_data"]["x"]),
-            edge_index=torch.LongTensor(sample["bb_pyg_data"]["edge_idx"]),
-        )
-        _sample["bb_pyg_data"] = bb_pyg_data
-        pyg_data = Data(
-            x=torch.LongTensor(sample["pyg_data"]["x"]),
-            edge_index=torch.LongTensor(sample["pyg_data"]["edge_idx"]),
-            edge_attr=torch.LongTensor(sample["pyg_data"]["edge_attr"]),
-        )
-        _sample["pyg_data"] = pyg_data
-        _sample["readout"] = to_tensor(sample["readout"])
+    if args.collate_dataset:
+        del_train_dataset = CollateDataset(del_train_dataset)
+        del_val_dataset = CollateDataset(del_val_dataset)
 
-        return _sample
-
-    def to_tensor(nested_dict: dict) -> dict:
-        for k, v in nested_dict.items():
-            if isinstance(v, dict):
-                to_tensor(v)
-            else:
-                nested_dict[k] = torch.tensor(v)
-        return nested_dict
-
+    print("Creating dataloaders")
     # DataLoaders
     del_train_loader = DataLoader(
         del_train_dataset,
         batch_size=args.batch_size,
         shuffle=True,
         num_workers=args.num_workers,
-        collate_fn=collate_fn if args.collate_dataset else None,
     )
     del_val_loader = DataLoader(
         del_val_dataset,
         batch_size=args.batch_size,
         shuffle=False,
         num_workers=args.num_workers,
-        collate_fn=collate_fn if args.collate_dataset else None,
     )
 
     # Load model
@@ -293,8 +309,8 @@ if __name__ == "__main__":
             output = model(data["bb_pyg_data"], data["pyg_data"])
             y = torch.cat(
                 (
-                    data["readout"][args.target_name]["target"],
-                    data["readout"][args.target_name]["control"],
+                    data["readout"][args.target_name]["target"].view(-1, args.target_size),
+                    data["readout"][args.target_name]["control"].view(-1, args.matrix_size),
                 ),
                 dim=1,
             )
@@ -364,8 +380,8 @@ if __name__ == "__main__":
                         output,
                         torch.cat(
                             (
-                                data["readout"][args.target_name]["target"],
-                                data["readout"][args.target_name]["control"],
+                                data["readout"][args.target_name]["target"].view(-1, args.target_size),
+                                data["readout"][args.target_name]["control"].view(-1, args.matrix_size),
                             ),
                             dim=1,
                         ),
@@ -381,8 +397,8 @@ if __name__ == "__main__":
                         output,
                         torch.cat(
                             (
-                                data["readout"][args.target_name]["target"],
-                                data["readout"][args.target_name]["control"],
+                                data["readout"][args.target_name]["target"].view(-1, args.target_size),
+                                data["readout"][args.target_name]["control"].view(-1, args.matrix_size),
                             ),
                             dim=1,
                         ),

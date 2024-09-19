@@ -7,8 +7,8 @@ import tqdm
 from ..datasets.lmdb_dataset import LMDBDataset
 from ..utils.utils import standardize_smiles
 
-fpath = "/data02/gtguo/DEL/data/raw/001-sEH/total_compounds.txt"
-output_path = "/data02/gtguo/DEL/data/lmdb/001_sEH.lmdb"
+fpath = "E:/Research/del/data/raw/001-sEH/total_compounds.txt"
+output_path = "E:/Research/del/data/lmdb/001_sEH.lmdb"
 
 
 def line_to_dict_sample(line: str) -> Dict[str, Any]:

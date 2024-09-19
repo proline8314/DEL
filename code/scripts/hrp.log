@@ -1,0 +1,1265 @@
+nohup: ignoring input
+INFO:__main__:name: hrp_large_corr_400
+INFO:__main__:seed: 4
+INFO:__main__:device: cuda:1
+INFO:__main__:batch_size: 2048
+INFO:__main__:epochs: 400
+INFO:__main__:lr: 0.0003
+INFO:__main__:weight_decay: 0.0001
+INFO:__main__:log_interval: 5
+INFO:__main__:save_interval: 10
+INFO:__main__:save_path: /data02/gtguo/DEL/data/weights/refnet/
+INFO:__main__:load_path: /data02/gtguo/DEL/data/weights/refnet/hrp_large_corr
+INFO:__main__:update_loss: True
+INFO:__main__:target_name: hrp
+INFO:__main__:fp_size: 2048
+INFO:__main__:forced_reload: False
+INFO:__main__:train_size: 0.8
+INFO:__main__:valid_size: 0.2
+INFO:__main__:num_workers: 8
+INFO:__main__:enc_node_feat_dim: 19
+INFO:__main__:enc_edge_feat_dim: 2
+INFO:__main__:enc_node_embedding_size: 64
+INFO:__main__:enc_edge_embedding_size: 64
+INFO:__main__:enc_n_layers: 5
+INFO:__main__:enc_gat_n_heads: 4
+INFO:__main__:enc_gat_ffn_ratio: 4
+INFO:__main__:enc_with_fp: True
+INFO:__main__:enc_fp_embedding_size: 32
+INFO:__main__:enc_fp_ffn_size: 128
+INFO:__main__:enc_fp_gated: True
+INFO:__main__:enc_fp_n_heads: 4
+INFO:__main__:enc_fp_size: 256
+INFO:__main__:enc_fp_to_gat_feedback: add
+INFO:__main__:enc_gat_to_fp_pooling: mean
+INFO:__main__:dec_node_input_size: 64
+INFO:__main__:dec_node_emb_size: 64
+INFO:__main__:dec_fp_input_size: 32
+INFO:__main__:dec_fp_emb_size: 64
+INFO:__main__:dec_output_size: 2
+INFO:__main__:dec_with_fp: True
+INFO:__main__:dec_with_dist: True
+INFO:__main__:target_size: 2
+INFO:__main__:label_size: 6
+INFO:__main__:matrix_size: 4
+INFO:__main__:loss_sigma_correction: True
+INFO:__main__:record_path: /data02/gtguo/DEL/data/records/refnet/
+INFO:__main__:lr_schedule: False
+INFO:__main__:warmup_ratio: 0.1
+INFO:__main__:decay: 0.1
+INFO:__main__:warmup_lr: 0.005
+INFO:__main__:Model has 563876 parameters
+Traceback (most recent call last):
+  File "/data02/gtguo/DEL/pkg/train.py", line 230, in <module>
+    model.load_state_dict(torch.load(os.path.join(args.load_path, "model.pt")))
+  File "/work01/home/gtguo/miniconda3/envs/DEL/lib/python3.10/site-packages/torch/serialization.py", line 699, in load
+    with _open_file_like(f, 'rb') as opened_file:
+  File "/work01/home/gtguo/miniconda3/envs/DEL/lib/python3.10/site-packages/torch/serialization.py", line 230, in _open_file_like
+    return _open_file(name_or_buffer, mode)
+  File "/work01/home/gtguo/miniconda3/envs/DEL/lib/python3.10/site-packages/torch/serialization.py", line 211, in __init__
+    super(_open_file, self).__init__(open(name, mode))
+FileNotFoundError: [Errno 2] No such file or directory: '/data02/gtguo/DEL/data/weights/refnet/hrp_large_corr/model.pt'
+nohup: ignoring input
+INFO:__main__:name: hrp_large_corr_400
+INFO:__main__:seed: 4
+INFO:__main__:device: cuda:1
+INFO:__main__:batch_size: 2048
+INFO:__main__:epochs: 400
+INFO:__main__:lr: 0.0003
+INFO:__main__:weight_decay: 0.0001
+INFO:__main__:log_interval: 5
+INFO:__main__:save_interval: 10
+INFO:__main__:save_path: /data02/gtguo/DEL/data/weights/refnet/
+INFO:__main__:load_path: /data02/gtguo/DEL/data/weights/refnet/hrp_large_corr
+INFO:__main__:load: False
+INFO:__main__:update_loss: True
+INFO:__main__:target_name: hrp
+INFO:__main__:fp_size: 2048
+INFO:__main__:forced_reload: False
+INFO:__main__:train_size: 0.8
+INFO:__main__:valid_size: 0.2
+INFO:__main__:num_workers: 8
+INFO:__main__:enc_node_feat_dim: 19
+INFO:__main__:enc_edge_feat_dim: 2
+INFO:__main__:enc_node_embedding_size: 64
+INFO:__main__:enc_edge_embedding_size: 64
+INFO:__main__:enc_n_layers: 5
+INFO:__main__:enc_gat_n_heads: 4
+INFO:__main__:enc_gat_ffn_ratio: 4
+INFO:__main__:enc_with_fp: True
+INFO:__main__:enc_fp_embedding_size: 32
+INFO:__main__:enc_fp_ffn_size: 128
+INFO:__main__:enc_fp_gated: True
+INFO:__main__:enc_fp_n_heads: 4
+INFO:__main__:enc_fp_size: 256
+INFO:__main__:enc_fp_to_gat_feedback: add
+INFO:__main__:enc_gat_to_fp_pooling: mean
+INFO:__main__:dec_node_input_size: 64
+INFO:__main__:dec_node_emb_size: 64
+INFO:__main__:dec_fp_input_size: 32
+INFO:__main__:dec_fp_emb_size: 64
+INFO:__main__:dec_output_size: 2
+INFO:__main__:dec_with_fp: True
+INFO:__main__:dec_with_dist: True
+INFO:__main__:target_size: 2
+INFO:__main__:label_size: 6
+INFO:__main__:matrix_size: 4
+INFO:__main__:loss_sigma_correction: True
+INFO:__main__:record_path: /data02/gtguo/DEL/data/records/refnet/
+INFO:__main__:lr_schedule: False
+INFO:__main__:warmup_ratio: 0.1
+INFO:__main__:decay: 0.1
+INFO:__main__:warmup_lr: 0.005
+INFO:__main__:Model has 563876 parameters
+/work01/home/gtguo/miniconda3/envs/DEL/lib/python3.10/site-packages/torch/nn/functional.py:1960: UserWarning: nn.functional.sigmoid is deprecated. Use torch.sigmoid instead.
+  warnings.warn("nn.functional.sigmoid is deprecated. Use torch.sigmoid instead.")
+/data02/gtguo/DEL/pkg/losses/zip_loss.py:119: UserWarning: Using a target size (torch.Size([2048, 2])) that is different to the input size (torch.Size([1])). This will likely lead to incorrect results due to broadcasting. Please ensure they have the same size.
+  mse_tgt = F.mse_loss(self.target_count, c_tgt.float())
+/data02/gtguo/DEL/pkg/losses/zip_loss.py:120: UserWarning: Using a target size (torch.Size([2048, 4])) that is different to the input size (torch.Size([1])). This will likely lead to incorrect results due to broadcasting. Please ensure they have the same size.
+  mse_mat = F.mse_loss(self.matrix_count, c_mat.float())
+INFO:__main__:Epoch 0, Iteration 0, Train Loss: 129.91690063476562, LR: 0.0003
+INFO:__main__:Epoch 0, Iteration 5, Train Loss: 114.968994140625, LR: 0.0003
+INFO:__main__:Epoch 0, Iteration 10, Train Loss: 93.23068237304688, LR: 0.0003
+INFO:__main__:Epoch 0, Iteration 15, Train Loss: 79.005126953125, LR: 0.0003
+INFO:__main__:Epoch 0, Iteration 20, Train Loss: 59.93730163574219, LR: 0.0003
+INFO:__main__:Epoch 0, Iteration 25, Train Loss: 56.72392272949219, LR: 0.0003
+INFO:__main__:Epoch 0, Iteration 30, Train Loss: 54.88807678222656, LR: 0.0003
+INFO:__main__:Epoch 0, Iteration 35, Train Loss: 52.98341369628906, LR: 0.0003
+INFO:__main__:Epoch 0, Iteration 40, Train Loss: 52.814605712890625, LR: 0.0003
+/data02/gtguo/DEL/pkg/losses/zip_loss.py:119: UserWarning: Using a target size (torch.Size([806, 2])) that is different to the input size (torch.Size([1])). This will likely lead to incorrect results due to broadcasting. Please ensure they have the same size.
+  mse_tgt = F.mse_loss(self.target_count, c_tgt.float())
+/data02/gtguo/DEL/pkg/losses/zip_loss.py:120: UserWarning: Using a target size (torch.Size([806, 4])) that is different to the input size (torch.Size([1])). This will likely lead to incorrect results due to broadcasting. Please ensure they have the same size.
+  mse_mat = F.mse_loss(self.matrix_count, c_mat.float())
+/data02/gtguo/DEL/pkg/losses/zip_loss.py:119: UserWarning: Using a target size (torch.Size([1226, 2])) that is different to the input size (torch.Size([1])). This will likely lead to incorrect results due to broadcasting. Please ensure they have the same size.
+  mse_tgt = F.mse_loss(self.target_count, c_tgt.float())
+/data02/gtguo/DEL/pkg/losses/zip_loss.py:120: UserWarning: Using a target size (torch.Size([1226, 4])) that is different to the input size (torch.Size([1])). This will likely lead to incorrect results due to broadcasting. Please ensure they have the same size.
+  mse_mat = F.mse_loss(self.matrix_count, c_mat.float())
+INFO:__main__:Epoch 0, Validation Loss: 49.36245346069336
+INFO:__main__:Epoch 1, Iteration 0, Train Loss: 49.253211975097656, LR: 0.0003
+INFO:__main__:Epoch 1, Iteration 5, Train Loss: 50.01602554321289, LR: 0.0003
+INFO:__main__:Epoch 1, Iteration 10, Train Loss: 50.3284912109375, LR: 0.0003
+INFO:__main__:Epoch 1, Iteration 15, Train Loss: 49.038780212402344, LR: 0.0003
+INFO:__main__:Epoch 1, Iteration 20, Train Loss: 46.808319091796875, LR: 0.0003
+INFO:__main__:Epoch 1, Iteration 25, Train Loss: 45.460636138916016, LR: 0.0003
+INFO:__main__:Epoch 1, Iteration 30, Train Loss: 47.43260955810547, LR: 0.0003
+INFO:__main__:Epoch 1, Iteration 35, Train Loss: 47.232078552246094, LR: 0.0003
+INFO:__main__:Epoch 1, Iteration 40, Train Loss: 47.8887939453125, LR: 0.0003
+INFO:__main__:Epoch 1, Validation Loss: 44.56317416104403
+INFO:__main__:Epoch 2, Iteration 0, Train Loss: 45.602134704589844, LR: 0.0003
+INFO:__main__:Epoch 2, Iteration 5, Train Loss: 43.854427337646484, LR: 0.0003
+INFO:__main__:Epoch 2, Iteration 10, Train Loss: 48.23904037475586, LR: 0.0003
+INFO:__main__:Epoch 2, Iteration 15, Train Loss: 44.470977783203125, LR: 0.0003
+INFO:__main__:Epoch 2, Iteration 20, Train Loss: 46.55280303955078, LR: 0.0003
+INFO:__main__:Epoch 2, Iteration 25, Train Loss: 44.793853759765625, LR: 0.0003
+INFO:__main__:Epoch 2, Iteration 30, Train Loss: 38.230384826660156, LR: 0.0003
+INFO:__main__:Epoch 2, Iteration 35, Train Loss: 40.97634506225586, LR: 0.0003
+INFO:__main__:Epoch 2, Iteration 40, Train Loss: 48.83012390136719, LR: 0.0003
+INFO:__main__:Epoch 2, Validation Loss: 42.32102584838867
+INFO:__main__:Epoch 3, Iteration 0, Train Loss: 39.94696044921875, LR: 0.0003
+INFO:__main__:Epoch 3, Iteration 5, Train Loss: 40.92210388183594, LR: 0.0003
+INFO:__main__:Epoch 3, Iteration 10, Train Loss: 48.213050842285156, LR: 0.0003
+INFO:__main__:Epoch 3, Iteration 15, Train Loss: 41.14651870727539, LR: 0.0003
+INFO:__main__:Epoch 3, Iteration 20, Train Loss: 43.3077392578125, LR: 0.0003
+INFO:__main__:Epoch 3, Iteration 25, Train Loss: 43.713897705078125, LR: 0.0003
+INFO:__main__:Epoch 3, Iteration 30, Train Loss: 41.96363067626953, LR: 0.0003
+INFO:__main__:Epoch 3, Iteration 35, Train Loss: 43.08200454711914, LR: 0.0003
+INFO:__main__:Epoch 3, Iteration 40, Train Loss: 45.765228271484375, LR: 0.0003
+INFO:__main__:Epoch 3, Validation Loss: 41.50297615744851
+INFO:__main__:Epoch 4, Iteration 0, Train Loss: 42.567176818847656, LR: 0.0003
+INFO:__main__:Epoch 4, Iteration 5, Train Loss: 45.792396545410156, LR: 0.0003
+INFO:__main__:Epoch 4, Iteration 10, Train Loss: 41.37459945678711, LR: 0.0003
+INFO:__main__:Epoch 4, Iteration 15, Train Loss: 42.931068420410156, LR: 0.0003
+INFO:__main__:Epoch 4, Iteration 20, Train Loss: 40.847434997558594, LR: 0.0003
+INFO:__main__:Epoch 4, Iteration 25, Train Loss: 40.979469299316406, LR: 0.0003
+INFO:__main__:Epoch 4, Iteration 30, Train Loss: 44.606689453125, LR: 0.0003
+INFO:__main__:Epoch 4, Iteration 35, Train Loss: 38.816184997558594, LR: 0.0003
+INFO:__main__:Epoch 4, Iteration 40, Train Loss: 40.592708587646484, LR: 0.0003
+INFO:__main__:Epoch 4, Validation Loss: 41.34034382213246
+INFO:__main__:Epoch 5, Iteration 0, Train Loss: 43.22267150878906, LR: 0.0003
+INFO:__main__:Epoch 5, Iteration 5, Train Loss: 43.62099075317383, LR: 0.0003
+INFO:__main__:Epoch 5, Iteration 10, Train Loss: 46.29649353027344, LR: 0.0003
+INFO:__main__:Epoch 5, Iteration 15, Train Loss: 42.176246643066406, LR: 0.0003
+INFO:__main__:Epoch 5, Iteration 20, Train Loss: 43.078773498535156, LR: 0.0003
+INFO:__main__:Epoch 5, Iteration 25, Train Loss: 40.73833465576172, LR: 0.0003
+INFO:__main__:Epoch 5, Iteration 30, Train Loss: 40.46665573120117, LR: 0.0003
+INFO:__main__:Epoch 5, Iteration 35, Train Loss: 43.376136779785156, LR: 0.0003
+INFO:__main__:Epoch 5, Iteration 40, Train Loss: 40.63893127441406, LR: 0.0003
+INFO:__main__:Epoch 5, Validation Loss: 41.211059917103164
+INFO:__main__:Epoch 6, Iteration 0, Train Loss: 40.08903121948242, LR: 0.0003
+INFO:__main__:Epoch 6, Iteration 5, Train Loss: 42.5416259765625, LR: 0.0003
+INFO:__main__:Epoch 6, Iteration 10, Train Loss: 40.274818420410156, LR: 0.0003
+INFO:__main__:Epoch 6, Iteration 15, Train Loss: 41.54214859008789, LR: 0.0003
+INFO:__main__:Epoch 6, Iteration 20, Train Loss: 44.34101486206055, LR: 0.0003
+INFO:__main__:Epoch 6, Iteration 25, Train Loss: 42.27675247192383, LR: 0.0003
+INFO:__main__:Epoch 6, Iteration 30, Train Loss: 40.965545654296875, LR: 0.0003
+INFO:__main__:Epoch 6, Iteration 35, Train Loss: 42.86784744262695, LR: 0.0003
+INFO:__main__:Epoch 6, Iteration 40, Train Loss: 44.187255859375, LR: 0.0003
+INFO:__main__:Epoch 6, Validation Loss: 41.14494185014205
+INFO:__main__:Epoch 7, Iteration 0, Train Loss: 45.310394287109375, LR: 0.0003
+INFO:__main__:Epoch 7, Iteration 5, Train Loss: 39.955108642578125, LR: 0.0003
+INFO:__main__:Epoch 7, Iteration 10, Train Loss: 43.791996002197266, LR: 0.0003
+INFO:__main__:Epoch 7, Iteration 15, Train Loss: 39.29903030395508, LR: 0.0003
+INFO:__main__:Epoch 7, Iteration 20, Train Loss: 43.23302459716797, LR: 0.0003
+INFO:__main__:Epoch 7, Iteration 25, Train Loss: 39.701168060302734, LR: 0.0003
+INFO:__main__:Epoch 7, Iteration 30, Train Loss: 42.3116455078125, LR: 0.0003
+INFO:__main__:Epoch 7, Iteration 35, Train Loss: 41.91938018798828, LR: 0.0003
+INFO:__main__:Epoch 7, Iteration 40, Train Loss: 41.83999252319336, LR: 0.0003
+INFO:__main__:Epoch 7, Validation Loss: 41.22985909201882
+INFO:__main__:Epoch 8, Iteration 0, Train Loss: 41.298614501953125, LR: 0.0003
+INFO:__main__:Epoch 8, Iteration 5, Train Loss: 42.10188674926758, LR: 0.0003
+INFO:__main__:Epoch 8, Iteration 10, Train Loss: 41.46820068359375, LR: 0.0003
+INFO:__main__:Epoch 8, Iteration 15, Train Loss: 40.936622619628906, LR: 0.0003
+INFO:__main__:Epoch 8, Iteration 20, Train Loss: 44.090641021728516, LR: 0.0003
+INFO:__main__:Epoch 8, Iteration 25, Train Loss: 39.614501953125, LR: 0.0003
+INFO:__main__:Epoch 8, Iteration 30, Train Loss: 45.16191864013672, LR: 0.0003
+INFO:__main__:Epoch 8, Iteration 35, Train Loss: 45.97690963745117, LR: 0.0003
+INFO:__main__:Epoch 8, Iteration 40, Train Loss: 42.05353927612305, LR: 0.0003
+INFO:__main__:Epoch 8, Validation Loss: 41.093142075972125
+INFO:__main__:Epoch 9, Iteration 0, Train Loss: 43.34846496582031, LR: 0.0003
+INFO:__main__:Epoch 9, Iteration 5, Train Loss: 40.4653434753418, LR: 0.0003
+INFO:__main__:Epoch 9, Iteration 10, Train Loss: 40.437049865722656, LR: 0.0003
+INFO:__main__:Epoch 9, Iteration 15, Train Loss: 43.343292236328125, LR: 0.0003
+INFO:__main__:Epoch 9, Iteration 20, Train Loss: 40.045753479003906, LR: 0.0003
+INFO:__main__:Epoch 9, Iteration 25, Train Loss: 42.29513168334961, LR: 0.0003
+INFO:__main__:Epoch 9, Iteration 30, Train Loss: 43.237361907958984, LR: 0.0003
+INFO:__main__:Epoch 9, Iteration 35, Train Loss: 43.58896255493164, LR: 0.0003
+INFO:__main__:Epoch 9, Iteration 40, Train Loss: 41.01346969604492, LR: 0.0003
+INFO:__main__:Epoch 9, Validation Loss: 41.10176329179244
+INFO:__main__:Epoch 10, Iteration 0, Train Loss: 42.36886215209961, LR: 0.0003
+INFO:__main__:Epoch 10, Iteration 5, Train Loss: 39.85688400268555, LR: 0.0003
+INFO:__main__:Epoch 10, Iteration 10, Train Loss: 42.923709869384766, LR: 0.0003
+INFO:__main__:Epoch 10, Iteration 15, Train Loss: 42.02329635620117, LR: 0.0003
+INFO:__main__:Epoch 10, Iteration 20, Train Loss: 40.64441680908203, LR: 0.0003
+INFO:__main__:Epoch 10, Iteration 25, Train Loss: 44.438358306884766, LR: 0.0003
+INFO:__main__:Epoch 10, Iteration 30, Train Loss: 39.33625030517578, LR: 0.0003
+INFO:__main__:Epoch 10, Iteration 35, Train Loss: 40.79347610473633, LR: 0.0003
+INFO:__main__:Epoch 10, Iteration 40, Train Loss: 42.14814758300781, LR: 0.0003
+INFO:__main__:Epoch 10, Validation Loss: 41.06868917291815
+INFO:__main__:Epoch 11, Iteration 0, Train Loss: 41.745513916015625, LR: 0.0003
+INFO:__main__:Epoch 11, Iteration 5, Train Loss: 41.829307556152344, LR: 0.0003
+INFO:__main__:Epoch 11, Iteration 10, Train Loss: 41.64525604248047, LR: 0.0003
+INFO:__main__:Epoch 11, Iteration 15, Train Loss: 42.282562255859375, LR: 0.0003
+INFO:__main__:Epoch 11, Iteration 20, Train Loss: 43.265838623046875, LR: 0.0003
+INFO:__main__:Epoch 11, Iteration 25, Train Loss: 41.67878341674805, LR: 0.0003
+INFO:__main__:Epoch 11, Iteration 30, Train Loss: 43.693233489990234, LR: 0.0003
+INFO:__main__:Epoch 11, Iteration 35, Train Loss: 40.30888748168945, LR: 0.0003
+INFO:__main__:Epoch 11, Iteration 40, Train Loss: 39.3507194519043, LR: 0.0003
+INFO:__main__:Epoch 11, Validation Loss: 41.01548524336381
+INFO:__main__:Epoch 12, Iteration 0, Train Loss: 42.80335998535156, LR: 0.0003
+INFO:__main__:Epoch 12, Iteration 5, Train Loss: 41.785362243652344, LR: 0.0003
+INFO:__main__:Epoch 12, Iteration 10, Train Loss: 43.03715896606445, LR: 0.0003
+INFO:__main__:Epoch 12, Iteration 15, Train Loss: 41.28929138183594, LR: 0.0003
+INFO:__main__:Epoch 12, Iteration 20, Train Loss: 43.201995849609375, LR: 0.0003
+INFO:__main__:Epoch 12, Iteration 25, Train Loss: 42.34341812133789, LR: 0.0003
+INFO:__main__:Epoch 12, Iteration 30, Train Loss: 43.246253967285156, LR: 0.0003
+INFO:__main__:Epoch 12, Iteration 35, Train Loss: 44.2230339050293, LR: 0.0003
+INFO:__main__:Epoch 12, Iteration 40, Train Loss: 44.28050231933594, LR: 0.0003
+INFO:__main__:Epoch 12, Validation Loss: 40.96096905795011
+INFO:__main__:Epoch 13, Iteration 0, Train Loss: 40.468536376953125, LR: 0.0003
+INFO:__main__:Epoch 13, Iteration 5, Train Loss: 40.24623107910156, LR: 0.0003
+INFO:__main__:Epoch 13, Iteration 10, Train Loss: 42.496116638183594, LR: 0.0003
+INFO:__main__:Epoch 13, Iteration 15, Train Loss: 40.5334587097168, LR: 0.0003
+INFO:__main__:Epoch 13, Iteration 20, Train Loss: 44.09286117553711, LR: 0.0003
+INFO:__main__:Epoch 13, Iteration 25, Train Loss: 45.43394470214844, LR: 0.0003
+INFO:__main__:Epoch 13, Iteration 30, Train Loss: 41.17816925048828, LR: 0.0003
+INFO:__main__:Epoch 13, Iteration 35, Train Loss: 38.389400482177734, LR: 0.0003
+INFO:__main__:Epoch 13, Iteration 40, Train Loss: 37.964542388916016, LR: 0.0003
+INFO:__main__:Epoch 13, Validation Loss: 41.2241755398837
+INFO:__main__:Epoch 14, Iteration 0, Train Loss: 43.265045166015625, LR: 0.0003
+INFO:__main__:Epoch 14, Iteration 5, Train Loss: 45.07741928100586, LR: 0.0003
+INFO:__main__:Epoch 14, Iteration 10, Train Loss: 41.127098083496094, LR: 0.0003
+INFO:__main__:Epoch 14, Iteration 15, Train Loss: 41.098487854003906, LR: 0.0003
+INFO:__main__:Epoch 14, Iteration 20, Train Loss: 39.819305419921875, LR: 0.0003
+INFO:__main__:Epoch 14, Iteration 25, Train Loss: 40.45985794067383, LR: 0.0003
+INFO:__main__:Epoch 14, Iteration 30, Train Loss: 42.432029724121094, LR: 0.0003
+INFO:__main__:Epoch 14, Iteration 35, Train Loss: 46.52067947387695, LR: 0.0003
+INFO:__main__:Epoch 14, Iteration 40, Train Loss: 45.33318328857422, LR: 0.0003
+INFO:__main__:Epoch 14, Validation Loss: 41.04446237737482
+INFO:__main__:Epoch 15, Iteration 0, Train Loss: 39.74616241455078, LR: 0.0003
+INFO:__main__:Epoch 15, Iteration 5, Train Loss: 42.018775939941406, LR: 0.0003
+INFO:__main__:Epoch 15, Iteration 10, Train Loss: 44.14385986328125, LR: 0.0003
+INFO:__main__:Epoch 15, Iteration 15, Train Loss: 39.95061492919922, LR: 0.0003
+INFO:__main__:Epoch 15, Iteration 20, Train Loss: 46.85582733154297, LR: 0.0003
+INFO:__main__:Epoch 15, Iteration 25, Train Loss: 41.4984130859375, LR: 0.0003
+INFO:__main__:Epoch 15, Iteration 30, Train Loss: 41.34947967529297, LR: 0.0003
+INFO:__main__:Epoch 15, Iteration 35, Train Loss: 43.98004150390625, LR: 0.0003
+INFO:__main__:Epoch 15, Iteration 40, Train Loss: 39.590946197509766, LR: 0.0003
+INFO:__main__:Epoch 15, Validation Loss: 40.89977819269354
+INFO:__main__:Epoch 16, Iteration 0, Train Loss: 43.139163970947266, LR: 0.0003
+INFO:__main__:Epoch 16, Iteration 5, Train Loss: 41.95197296142578, LR: 0.0003
+INFO:__main__:Epoch 16, Iteration 10, Train Loss: 41.726318359375, LR: 0.0003
+INFO:__main__:Epoch 16, Iteration 15, Train Loss: 39.98334503173828, LR: 0.0003
+INFO:__main__:Epoch 16, Iteration 20, Train Loss: 44.99188995361328, LR: 0.0003
+INFO:__main__:Epoch 16, Iteration 25, Train Loss: 41.612030029296875, LR: 0.0003
+INFO:__main__:Epoch 16, Iteration 30, Train Loss: 40.46214294433594, LR: 0.0003
+INFO:__main__:Epoch 16, Iteration 35, Train Loss: 43.85175323486328, LR: 0.0003
+INFO:__main__:Epoch 16, Iteration 40, Train Loss: 46.157840728759766, LR: 0.0003
+INFO:__main__:Epoch 16, Validation Loss: 40.91343203457919
+INFO:__main__:Epoch 17, Iteration 0, Train Loss: 40.71584701538086, LR: 0.0003
+INFO:__main__:Epoch 17, Iteration 5, Train Loss: 43.4521484375, LR: 0.0003
+INFO:__main__:Epoch 17, Iteration 10, Train Loss: 38.47908401489258, LR: 0.0003
+INFO:__main__:Epoch 17, Iteration 15, Train Loss: 46.509803771972656, LR: 0.0003
+INFO:__main__:Epoch 17, Iteration 20, Train Loss: 48.67354202270508, LR: 0.0003
+INFO:__main__:Epoch 17, Iteration 25, Train Loss: 43.17350769042969, LR: 0.0003
+INFO:__main__:Epoch 17, Iteration 30, Train Loss: 43.90694046020508, LR: 0.0003
+INFO:__main__:Epoch 17, Iteration 35, Train Loss: 40.738502502441406, LR: 0.0003
+INFO:__main__:Epoch 17, Iteration 40, Train Loss: 41.27671813964844, LR: 0.0003
+INFO:__main__:Epoch 17, Validation Loss: 41.03492806174538
+INFO:__main__:Epoch 18, Iteration 0, Train Loss: 41.867210388183594, LR: 0.0003
+INFO:__main__:Epoch 18, Iteration 5, Train Loss: 42.47908020019531, LR: 0.0003
+INFO:__main__:Epoch 18, Iteration 10, Train Loss: 42.127620697021484, LR: 0.0003
+INFO:__main__:Epoch 18, Iteration 15, Train Loss: 39.84382629394531, LR: 0.0003
+INFO:__main__:Epoch 18, Iteration 20, Train Loss: 42.7166633605957, LR: 0.0003
+INFO:__main__:Epoch 18, Iteration 25, Train Loss: 43.74717712402344, LR: 0.0003
+INFO:__main__:Epoch 18, Iteration 30, Train Loss: 43.53559875488281, LR: 0.0003
+INFO:__main__:Epoch 18, Iteration 35, Train Loss: 40.28974151611328, LR: 0.0003
+INFO:__main__:Epoch 18, Iteration 40, Train Loss: 44.80207824707031, LR: 0.0003
+INFO:__main__:Epoch 18, Validation Loss: 40.89007776433771
+INFO:__main__:Epoch 19, Iteration 0, Train Loss: 38.993812561035156, LR: 0.0003
+INFO:__main__:Epoch 19, Iteration 5, Train Loss: 44.91755676269531, LR: 0.0003
+INFO:__main__:Epoch 19, Iteration 10, Train Loss: 45.62214660644531, LR: 0.0003
+INFO:__main__:Epoch 19, Iteration 15, Train Loss: 40.78021240234375, LR: 0.0003
+INFO:__main__:Epoch 19, Iteration 20, Train Loss: 42.39208221435547, LR: 0.0003
+INFO:__main__:Epoch 19, Iteration 25, Train Loss: 42.7236213684082, LR: 0.0003
+INFO:__main__:Epoch 19, Iteration 30, Train Loss: 39.882225036621094, LR: 0.0003
+INFO:__main__:Epoch 19, Iteration 35, Train Loss: 43.814300537109375, LR: 0.0003
+INFO:__main__:Epoch 19, Iteration 40, Train Loss: 38.684486389160156, LR: 0.0003
+INFO:__main__:Epoch 19, Validation Loss: 40.871738780628554
+INFO:__main__:Epoch 20, Iteration 0, Train Loss: 43.22682189941406, LR: 0.0003
+INFO:__main__:Epoch 20, Iteration 5, Train Loss: 41.66777801513672, LR: 0.0003
+INFO:__main__:Epoch 20, Iteration 10, Train Loss: 45.265586853027344, LR: 0.0003
+INFO:__main__:Epoch 20, Iteration 15, Train Loss: 42.340553283691406, LR: 0.0003
+INFO:__main__:Epoch 20, Iteration 20, Train Loss: 39.954017639160156, LR: 0.0003
+INFO:__main__:Epoch 20, Iteration 25, Train Loss: 41.379249572753906, LR: 0.0003
+INFO:__main__:Epoch 20, Iteration 30, Train Loss: 41.99802017211914, LR: 0.0003
+INFO:__main__:Epoch 20, Iteration 35, Train Loss: 41.784278869628906, LR: 0.0003
+INFO:__main__:Epoch 20, Iteration 40, Train Loss: 41.570560455322266, LR: 0.0003
+INFO:__main__:Epoch 20, Validation Loss: 40.923480640758164
+INFO:__main__:Epoch 21, Iteration 0, Train Loss: 42.04380416870117, LR: 0.0003
+INFO:__main__:Epoch 21, Iteration 5, Train Loss: 39.82513427734375, LR: 0.0003
+INFO:__main__:Epoch 21, Iteration 10, Train Loss: 43.952640533447266, LR: 0.0003
+INFO:__main__:Epoch 21, Iteration 15, Train Loss: 44.570316314697266, LR: 0.0003
+INFO:__main__:Epoch 21, Iteration 20, Train Loss: 43.274139404296875, LR: 0.0003
+INFO:__main__:Epoch 21, Iteration 25, Train Loss: 42.545433044433594, LR: 0.0003
+INFO:__main__:Epoch 21, Iteration 30, Train Loss: 41.645660400390625, LR: 0.0003
+INFO:__main__:Epoch 21, Iteration 35, Train Loss: 38.53582763671875, LR: 0.0003
+INFO:__main__:Epoch 21, Iteration 40, Train Loss: 42.91325378417969, LR: 0.0003
+INFO:__main__:Epoch 21, Validation Loss: 40.84425111250444
+INFO:__main__:Epoch 22, Iteration 0, Train Loss: 39.47105026245117, LR: 0.0003
+INFO:__main__:Epoch 22, Iteration 5, Train Loss: 40.9995231628418, LR: 0.0003
+INFO:__main__:Epoch 22, Iteration 10, Train Loss: 39.64033126831055, LR: 0.0003
+INFO:__main__:Epoch 22, Iteration 15, Train Loss: 42.79811477661133, LR: 0.0003
+INFO:__main__:Epoch 22, Iteration 20, Train Loss: 41.1024169921875, LR: 0.0003
+INFO:__main__:Epoch 22, Iteration 25, Train Loss: 41.31267547607422, LR: 0.0003
+INFO:__main__:Epoch 22, Iteration 30, Train Loss: 41.88124084472656, LR: 0.0003
+INFO:__main__:Epoch 22, Iteration 35, Train Loss: 43.63272476196289, LR: 0.0003
+INFO:__main__:Epoch 22, Iteration 40, Train Loss: 43.2866325378418, LR: 0.0003
+INFO:__main__:Epoch 22, Validation Loss: 40.873778950084336
+INFO:__main__:Epoch 23, Iteration 0, Train Loss: 40.98724365234375, LR: 0.0003
+INFO:__main__:Epoch 23, Iteration 5, Train Loss: 46.65165710449219, LR: 0.0003
+INFO:__main__:Epoch 23, Iteration 10, Train Loss: 47.011871337890625, LR: 0.0003
+INFO:__main__:Epoch 23, Iteration 15, Train Loss: 40.803218841552734, LR: 0.0003
+INFO:__main__:Epoch 23, Iteration 20, Train Loss: 40.937408447265625, LR: 0.0003
+INFO:__main__:Epoch 23, Iteration 25, Train Loss: 41.91265106201172, LR: 0.0003
+INFO:__main__:Epoch 23, Iteration 30, Train Loss: 41.362937927246094, LR: 0.0003
+INFO:__main__:Epoch 23, Iteration 35, Train Loss: 39.67666244506836, LR: 0.0003
+INFO:__main__:Epoch 23, Iteration 40, Train Loss: 42.49143600463867, LR: 0.0003
+INFO:__main__:Epoch 23, Validation Loss: 40.86605453491211
+INFO:__main__:Epoch 24, Iteration 0, Train Loss: 38.747467041015625, LR: 0.0003
+INFO:__main__:Epoch 24, Iteration 5, Train Loss: 44.772178649902344, LR: 0.0003
+INFO:__main__:Epoch 24, Iteration 10, Train Loss: 41.26749801635742, LR: 0.0003
+INFO:__main__:Epoch 24, Iteration 15, Train Loss: 42.125579833984375, LR: 0.0003
+INFO:__main__:Epoch 24, Iteration 20, Train Loss: 40.46910095214844, LR: 0.0003
+INFO:__main__:Epoch 24, Iteration 25, Train Loss: 44.855224609375, LR: 0.0003
+INFO:__main__:Epoch 24, Iteration 30, Train Loss: 42.99211883544922, LR: 0.0003
+INFO:__main__:Epoch 24, Iteration 35, Train Loss: 41.798736572265625, LR: 0.0003
+INFO:__main__:Epoch 24, Iteration 40, Train Loss: 42.27070617675781, LR: 0.0003
+INFO:__main__:Epoch 24, Validation Loss: 40.85436803644354
+INFO:__main__:Epoch 25, Iteration 0, Train Loss: 38.454925537109375, LR: 0.0003
+INFO:__main__:Epoch 25, Iteration 5, Train Loss: 43.812843322753906, LR: 0.0003
+INFO:__main__:Epoch 25, Iteration 10, Train Loss: 42.33160400390625, LR: 0.0003
+INFO:__main__:Epoch 25, Iteration 15, Train Loss: 40.30213928222656, LR: 0.0003
+INFO:__main__:Epoch 25, Iteration 20, Train Loss: 42.455810546875, LR: 0.0003
+INFO:__main__:Epoch 25, Iteration 25, Train Loss: 42.979339599609375, LR: 0.0003
+INFO:__main__:Epoch 25, Iteration 30, Train Loss: 39.04619598388672, LR: 0.0003
+INFO:__main__:Epoch 25, Iteration 35, Train Loss: 38.284027099609375, LR: 0.0003
+INFO:__main__:Epoch 25, Iteration 40, Train Loss: 41.465850830078125, LR: 0.0003
+INFO:__main__:Epoch 25, Validation Loss: 40.847932295365766
+INFO:__main__:Epoch 26, Iteration 0, Train Loss: 42.701656341552734, LR: 0.0003
+INFO:__main__:Epoch 26, Iteration 5, Train Loss: 40.878753662109375, LR: 0.0003
+INFO:__main__:Epoch 26, Iteration 10, Train Loss: 44.9118537902832, LR: 0.0003
+INFO:__main__:Epoch 26, Iteration 15, Train Loss: 42.054771423339844, LR: 0.0003
+INFO:__main__:Epoch 26, Iteration 20, Train Loss: 40.51884841918945, LR: 0.0003
+INFO:__main__:Epoch 26, Iteration 25, Train Loss: 43.207340240478516, LR: 0.0003
+INFO:__main__:Epoch 26, Iteration 30, Train Loss: 41.763702392578125, LR: 0.0003
+INFO:__main__:Epoch 26, Iteration 35, Train Loss: 42.365867614746094, LR: 0.0003
+INFO:__main__:Epoch 26, Iteration 40, Train Loss: 40.89579391479492, LR: 0.0003
+INFO:__main__:Epoch 26, Validation Loss: 40.86485567959872
+INFO:__main__:Epoch 27, Iteration 0, Train Loss: 39.58583068847656, LR: 0.0003
+INFO:__main__:Epoch 27, Iteration 5, Train Loss: 40.24821472167969, LR: 0.0003
+INFO:__main__:Epoch 27, Iteration 10, Train Loss: 43.693870544433594, LR: 0.0003
+INFO:__main__:Epoch 27, Iteration 15, Train Loss: 39.43843460083008, LR: 0.0003
+INFO:__main__:Epoch 27, Iteration 20, Train Loss: 46.772071838378906, LR: 0.0003
+INFO:__main__:Epoch 27, Iteration 25, Train Loss: 41.479434967041016, LR: 0.0003
+INFO:__main__:Epoch 27, Iteration 30, Train Loss: 41.4193115234375, LR: 0.0003
+INFO:__main__:Epoch 27, Iteration 35, Train Loss: 42.60524368286133, LR: 0.0003
+INFO:__main__:Epoch 27, Iteration 40, Train Loss: 44.00962448120117, LR: 0.0003
+INFO:__main__:Epoch 27, Validation Loss: 40.78839041969993
+INFO:__main__:Epoch 28, Iteration 0, Train Loss: 45.679832458496094, LR: 0.0003
+INFO:__main__:Epoch 28, Iteration 5, Train Loss: 40.1302490234375, LR: 0.0003
+INFO:__main__:Epoch 28, Iteration 10, Train Loss: 40.61116027832031, LR: 0.0003
+INFO:__main__:Epoch 28, Iteration 15, Train Loss: 41.94554901123047, LR: 0.0003
+INFO:__main__:Epoch 28, Iteration 20, Train Loss: 46.481231689453125, LR: 0.0003
+INFO:__main__:Epoch 28, Iteration 25, Train Loss: 38.97736740112305, LR: 0.0003
+INFO:__main__:Epoch 28, Iteration 30, Train Loss: 42.34788513183594, LR: 0.0003
+INFO:__main__:Epoch 28, Iteration 35, Train Loss: 41.953224182128906, LR: 0.0003
+INFO:__main__:Epoch 28, Iteration 40, Train Loss: 41.01756286621094, LR: 0.0003
+INFO:__main__:Epoch 28, Validation Loss: 40.82945494218306
+INFO:__main__:Epoch 29, Iteration 0, Train Loss: 43.54212188720703, LR: 0.0003
+INFO:__main__:Epoch 29, Iteration 5, Train Loss: 42.407554626464844, LR: 0.0003
+INFO:__main__:Epoch 29, Iteration 10, Train Loss: 44.14043045043945, LR: 0.0003
+INFO:__main__:Epoch 29, Iteration 15, Train Loss: 41.86118698120117, LR: 0.0003
+INFO:__main__:Epoch 29, Iteration 20, Train Loss: 42.61672592163086, LR: 0.0003
+INFO:__main__:Epoch 29, Iteration 25, Train Loss: 40.15116882324219, LR: 0.0003
+INFO:__main__:Epoch 29, Iteration 30, Train Loss: 43.538429260253906, LR: 0.0003
+INFO:__main__:Epoch 29, Iteration 35, Train Loss: 43.027713775634766, LR: 0.0003
+INFO:__main__:Epoch 29, Iteration 40, Train Loss: 40.96600341796875, LR: 0.0003
+INFO:__main__:Epoch 29, Validation Loss: 40.858788923783735
+INFO:__main__:Epoch 30, Iteration 0, Train Loss: 41.20766067504883, LR: 0.0003
+INFO:__main__:Epoch 30, Iteration 5, Train Loss: 42.9107666015625, LR: 0.0003
+INFO:__main__:Epoch 30, Iteration 10, Train Loss: 43.44673156738281, LR: 0.0003
+INFO:__main__:Epoch 30, Iteration 15, Train Loss: 41.55216979980469, LR: 0.0003
+INFO:__main__:Epoch 30, Iteration 20, Train Loss: 40.58789825439453, LR: 0.0003
+INFO:__main__:Epoch 30, Iteration 25, Train Loss: 40.82588195800781, LR: 0.0003
+INFO:__main__:Epoch 30, Iteration 30, Train Loss: 42.73676300048828, LR: 0.0003
+INFO:__main__:Epoch 30, Iteration 35, Train Loss: 41.71031188964844, LR: 0.0003
+INFO:__main__:Epoch 30, Iteration 40, Train Loss: 42.32597351074219, LR: 0.0003
+INFO:__main__:Epoch 30, Validation Loss: 41.07946361194957
+INFO:__main__:Epoch 31, Iteration 0, Train Loss: 43.46202087402344, LR: 0.0003
+INFO:__main__:Epoch 31, Iteration 5, Train Loss: 40.75346374511719, LR: 0.0003
+INFO:__main__:Epoch 31, Iteration 10, Train Loss: 44.75939178466797, LR: 0.0003
+INFO:__main__:Epoch 31, Iteration 15, Train Loss: 42.063995361328125, LR: 0.0003
+INFO:__main__:Epoch 31, Iteration 20, Train Loss: 40.171905517578125, LR: 0.0003
+INFO:__main__:Epoch 31, Iteration 25, Train Loss: 47.56157302856445, LR: 0.0003
+INFO:__main__:Epoch 31, Iteration 30, Train Loss: 40.157508850097656, LR: 0.0003
+INFO:__main__:Epoch 31, Iteration 35, Train Loss: 41.53842544555664, LR: 0.0003
+INFO:__main__:Epoch 31, Iteration 40, Train Loss: 42.022361755371094, LR: 0.0003
+INFO:__main__:Epoch 31, Validation Loss: 40.777822667902164
+INFO:__main__:Epoch 32, Iteration 0, Train Loss: 43.536441802978516, LR: 0.0003
+INFO:__main__:Epoch 32, Iteration 5, Train Loss: 41.0748291015625, LR: 0.0003
+INFO:__main__:Epoch 32, Iteration 10, Train Loss: 48.94502258300781, LR: 0.0003
+INFO:__main__:Epoch 32, Iteration 15, Train Loss: 42.71183776855469, LR: 0.0003
+INFO:__main__:Epoch 32, Iteration 20, Train Loss: 42.60223388671875, LR: 0.0003
+INFO:__main__:Epoch 32, Iteration 25, Train Loss: 45.04806137084961, LR: 0.0003
+INFO:__main__:Epoch 32, Iteration 30, Train Loss: 39.66731262207031, LR: 0.0003
+INFO:__main__:Epoch 32, Iteration 35, Train Loss: 40.61530685424805, LR: 0.0003
+INFO:__main__:Epoch 32, Iteration 40, Train Loss: 42.20978546142578, LR: 0.0003
+INFO:__main__:Epoch 32, Validation Loss: 40.796017386696555
+INFO:__main__:Epoch 33, Iteration 0, Train Loss: 47.307151794433594, LR: 0.0003
+INFO:__main__:Epoch 33, Iteration 5, Train Loss: 42.20673751831055, LR: 0.0003
+INFO:__main__:Epoch 33, Iteration 10, Train Loss: 42.475852966308594, LR: 0.0003
+INFO:__main__:Epoch 33, Iteration 15, Train Loss: 39.378700256347656, LR: 0.0003
+INFO:__main__:Epoch 33, Iteration 20, Train Loss: 40.81029510498047, LR: 0.0003
+INFO:__main__:Epoch 33, Iteration 25, Train Loss: 43.199432373046875, LR: 0.0003
+INFO:__main__:Epoch 33, Iteration 30, Train Loss: 41.518062591552734, LR: 0.0003
+INFO:__main__:Epoch 33, Iteration 35, Train Loss: 44.49137878417969, LR: 0.0003
+INFO:__main__:Epoch 33, Iteration 40, Train Loss: 41.752010345458984, LR: 0.0003
+INFO:__main__:Epoch 33, Validation Loss: 40.79002519087358
+INFO:__main__:Epoch 34, Iteration 0, Train Loss: 40.7261848449707, LR: 0.0003
+INFO:__main__:Epoch 34, Iteration 5, Train Loss: 45.27684020996094, LR: 0.0003
+INFO:__main__:Epoch 34, Iteration 10, Train Loss: 40.52449035644531, LR: 0.0003
+INFO:__main__:Epoch 34, Iteration 15, Train Loss: 43.869842529296875, LR: 0.0003
+INFO:__main__:Epoch 34, Iteration 20, Train Loss: 40.9755973815918, LR: 0.0003
+INFO:__main__:Epoch 34, Iteration 25, Train Loss: 41.8830680847168, LR: 0.0003
+INFO:__main__:Epoch 34, Iteration 30, Train Loss: 41.2060546875, LR: 0.0003
+INFO:__main__:Epoch 34, Iteration 35, Train Loss: 41.589378356933594, LR: 0.0003
+INFO:__main__:Epoch 34, Iteration 40, Train Loss: 44.8235969543457, LR: 0.0003
+INFO:__main__:Epoch 34, Validation Loss: 40.79211356423118
+INFO:__main__:Epoch 35, Iteration 0, Train Loss: 40.53461456298828, LR: 0.0003
+INFO:__main__:Epoch 35, Iteration 5, Train Loss: 41.80292510986328, LR: 0.0003
+INFO:__main__:Epoch 35, Iteration 10, Train Loss: 44.154937744140625, LR: 0.0003
+INFO:__main__:Epoch 35, Iteration 15, Train Loss: 42.054996490478516, LR: 0.0003
+INFO:__main__:Epoch 35, Iteration 20, Train Loss: 41.211097717285156, LR: 0.0003
+INFO:__main__:Epoch 35, Iteration 25, Train Loss: 43.775413513183594, LR: 0.0003
+INFO:__main__:Epoch 35, Iteration 30, Train Loss: 42.90677261352539, LR: 0.0003
+INFO:__main__:Epoch 35, Iteration 35, Train Loss: 40.5858154296875, LR: 0.0003
+INFO:__main__:Epoch 35, Iteration 40, Train Loss: 41.08379364013672, LR: 0.0003
+INFO:__main__:Epoch 35, Validation Loss: 40.775487032803625
+INFO:__main__:Epoch 36, Iteration 0, Train Loss: 39.481727600097656, LR: 0.0003
+INFO:__main__:Epoch 36, Iteration 5, Train Loss: 42.589778900146484, LR: 0.0003
+INFO:__main__:Epoch 36, Iteration 10, Train Loss: 40.76824951171875, LR: 0.0003
+INFO:__main__:Epoch 36, Iteration 15, Train Loss: 40.05643844604492, LR: 0.0003
+INFO:__main__:Epoch 36, Iteration 20, Train Loss: 45.26183319091797, LR: 0.0003
+INFO:__main__:Epoch 36, Iteration 25, Train Loss: 42.62092208862305, LR: 0.0003
+INFO:__main__:Epoch 36, Iteration 30, Train Loss: 41.02113342285156, LR: 0.0003
+INFO:__main__:Epoch 36, Iteration 35, Train Loss: 41.58590316772461, LR: 0.0003
+INFO:__main__:Epoch 36, Iteration 40, Train Loss: 40.97515869140625, LR: 0.0003
+INFO:__main__:Epoch 36, Validation Loss: 40.994197845458984
+INFO:__main__:Epoch 37, Iteration 0, Train Loss: 44.232208251953125, LR: 0.0003
+INFO:__main__:Epoch 37, Iteration 5, Train Loss: 42.64103698730469, LR: 0.0003
+INFO:__main__:Epoch 37, Iteration 10, Train Loss: 38.758724212646484, LR: 0.0003
+INFO:__main__:Epoch 37, Iteration 15, Train Loss: 40.54022979736328, LR: 0.0003
+INFO:__main__:Epoch 37, Iteration 20, Train Loss: 43.66554260253906, LR: 0.0003
+INFO:__main__:Epoch 37, Iteration 25, Train Loss: 43.01332092285156, LR: 0.0003
+INFO:__main__:Epoch 37, Iteration 30, Train Loss: 42.456443786621094, LR: 0.0003
+INFO:__main__:Epoch 37, Iteration 35, Train Loss: 40.55796432495117, LR: 0.0003
+INFO:__main__:Epoch 37, Iteration 40, Train Loss: 41.117408752441406, LR: 0.0003
+INFO:__main__:Epoch 37, Validation Loss: 40.77087471701882
+INFO:__main__:Epoch 38, Iteration 0, Train Loss: 43.2657585144043, LR: 0.0003
+INFO:__main__:Epoch 38, Iteration 5, Train Loss: 40.435184478759766, LR: 0.0003
+INFO:__main__:Epoch 38, Iteration 10, Train Loss: 39.851348876953125, LR: 0.0003
+INFO:__main__:Epoch 38, Iteration 15, Train Loss: 36.490234375, LR: 0.0003
+INFO:__main__:Epoch 38, Iteration 20, Train Loss: 43.503013610839844, LR: 0.0003
+INFO:__main__:Epoch 38, Iteration 25, Train Loss: 41.70431137084961, LR: 0.0003
+INFO:__main__:Epoch 38, Iteration 30, Train Loss: 47.09358596801758, LR: 0.0003
+INFO:__main__:Epoch 38, Iteration 35, Train Loss: 44.87617874145508, LR: 0.0003
+INFO:__main__:Epoch 38, Iteration 40, Train Loss: 39.112098693847656, LR: 0.0003
+INFO:__main__:Epoch 38, Validation Loss: 40.803591988303445
+INFO:__main__:Epoch 39, Iteration 0, Train Loss: 40.31502914428711, LR: 0.0003
+INFO:__main__:Epoch 39, Iteration 5, Train Loss: 44.019874572753906, LR: 0.0003
+INFO:__main__:Epoch 39, Iteration 10, Train Loss: 40.90235137939453, LR: 0.0003
+INFO:__main__:Epoch 39, Iteration 15, Train Loss: 42.10498046875, LR: 0.0003
+INFO:__main__:Epoch 39, Iteration 20, Train Loss: 39.631492614746094, LR: 0.0003
+INFO:__main__:Epoch 39, Iteration 25, Train Loss: 44.388450622558594, LR: 0.0003
+INFO:__main__:Epoch 39, Iteration 30, Train Loss: 38.59982681274414, LR: 0.0003
+INFO:__main__:Epoch 39, Iteration 35, Train Loss: 40.80171203613281, LR: 0.0003
+INFO:__main__:Epoch 39, Iteration 40, Train Loss: 42.48517990112305, LR: 0.0003
+INFO:__main__:Epoch 39, Validation Loss: 40.8373777216131
+INFO:__main__:Epoch 40, Iteration 0, Train Loss: 40.85655975341797, LR: 0.0003
+INFO:__main__:Epoch 40, Iteration 5, Train Loss: 42.14091873168945, LR: 0.0003
+INFO:__main__:Epoch 40, Iteration 10, Train Loss: 43.00730895996094, LR: 0.0003
+INFO:__main__:Epoch 40, Iteration 15, Train Loss: 43.73728942871094, LR: 0.0003
+INFO:__main__:Epoch 40, Iteration 20, Train Loss: 42.47288131713867, LR: 0.0003
+INFO:__main__:Epoch 40, Iteration 25, Train Loss: 40.63018035888672, LR: 0.0003
+INFO:__main__:Epoch 40, Iteration 30, Train Loss: 41.69390106201172, LR: 0.0003
+INFO:__main__:Epoch 40, Iteration 35, Train Loss: 42.93501281738281, LR: 0.0003
+INFO:__main__:Epoch 40, Iteration 40, Train Loss: 36.943809509277344, LR: 0.0003
+INFO:__main__:Epoch 40, Validation Loss: 40.77299638227983
+INFO:__main__:Epoch 41, Iteration 0, Train Loss: 41.23835754394531, LR: 0.0003
+INFO:__main__:Epoch 41, Iteration 5, Train Loss: 45.925201416015625, LR: 0.0003
+INFO:__main__:Epoch 41, Iteration 10, Train Loss: 43.5899658203125, LR: 0.0003
+INFO:__main__:Epoch 41, Iteration 15, Train Loss: 42.11783981323242, LR: 0.0003
+INFO:__main__:Epoch 41, Iteration 20, Train Loss: 43.45014572143555, LR: 0.0003
+INFO:__main__:Epoch 41, Iteration 25, Train Loss: 43.129207611083984, LR: 0.0003
+INFO:__main__:Epoch 41, Iteration 30, Train Loss: 42.93727111816406, LR: 0.0003
+INFO:__main__:Epoch 41, Iteration 35, Train Loss: 40.41009521484375, LR: 0.0003
+INFO:__main__:Epoch 41, Iteration 40, Train Loss: 43.24908447265625, LR: 0.0003
+INFO:__main__:Epoch 41, Validation Loss: 40.80239035866477
+INFO:__main__:Epoch 42, Iteration 0, Train Loss: 42.97907638549805, LR: 0.0003
+INFO:__main__:Epoch 42, Iteration 5, Train Loss: 42.157752990722656, LR: 0.0003
+INFO:__main__:Epoch 42, Iteration 10, Train Loss: 43.77941131591797, LR: 0.0003
+INFO:__main__:Epoch 42, Iteration 15, Train Loss: 42.67864990234375, LR: 0.0003
+INFO:__main__:Epoch 42, Iteration 20, Train Loss: 45.677955627441406, LR: 0.0003
+INFO:__main__:Epoch 42, Iteration 25, Train Loss: 46.21806716918945, LR: 0.0003
+INFO:__main__:Epoch 42, Iteration 30, Train Loss: 44.705726623535156, LR: 0.0003
+INFO:__main__:Epoch 42, Iteration 35, Train Loss: 40.81271743774414, LR: 0.0003
+INFO:__main__:Epoch 42, Iteration 40, Train Loss: 39.921722412109375, LR: 0.0003
+INFO:__main__:Epoch 42, Validation Loss: 40.90176044810902
+INFO:__main__:Epoch 43, Iteration 0, Train Loss: 43.215431213378906, LR: 0.0003
+INFO:__main__:Epoch 43, Iteration 5, Train Loss: 46.1264762878418, LR: 0.0003
+INFO:__main__:Epoch 43, Iteration 10, Train Loss: 43.16423797607422, LR: 0.0003
+INFO:__main__:Epoch 43, Iteration 15, Train Loss: 41.0156364440918, LR: 0.0003
+INFO:__main__:Epoch 43, Iteration 20, Train Loss: 42.32868194580078, LR: 0.0003
+INFO:__main__:Epoch 43, Iteration 25, Train Loss: 39.09626770019531, LR: 0.0003
+INFO:__main__:Epoch 43, Iteration 30, Train Loss: 42.992210388183594, LR: 0.0003
+INFO:__main__:Epoch 43, Iteration 35, Train Loss: 41.57235336303711, LR: 0.0003
+INFO:__main__:Epoch 43, Iteration 40, Train Loss: 44.51286315917969, LR: 0.0003
+INFO:__main__:Epoch 43, Validation Loss: 40.880524375221945
+INFO:__main__:Epoch 44, Iteration 0, Train Loss: 42.689456939697266, LR: 0.0003
+INFO:__main__:Epoch 44, Iteration 5, Train Loss: 37.98918533325195, LR: 0.0003
+INFO:__main__:Epoch 44, Iteration 10, Train Loss: 45.15378189086914, LR: 0.0003
+INFO:__main__:Epoch 44, Iteration 15, Train Loss: 41.3694953918457, LR: 0.0003
+INFO:__main__:Epoch 44, Iteration 20, Train Loss: 45.580875396728516, LR: 0.0003
+INFO:__main__:Epoch 44, Iteration 25, Train Loss: 40.22039794921875, LR: 0.0003
+INFO:__main__:Epoch 44, Iteration 30, Train Loss: 38.25650405883789, LR: 0.0003
+INFO:__main__:Epoch 44, Iteration 35, Train Loss: 43.57450866699219, LR: 0.0003
+INFO:__main__:Epoch 44, Iteration 40, Train Loss: 39.751976013183594, LR: 0.0003
+INFO:__main__:Epoch 44, Validation Loss: 40.7571196122603
+INFO:__main__:Epoch 45, Iteration 0, Train Loss: 39.630043029785156, LR: 0.0003
+INFO:__main__:Epoch 45, Iteration 5, Train Loss: 41.04386901855469, LR: 0.0003
+INFO:__main__:Epoch 45, Iteration 10, Train Loss: 42.258155822753906, LR: 0.0003
+INFO:__main__:Epoch 45, Iteration 15, Train Loss: 41.00042724609375, LR: 0.0003
+INFO:__main__:Epoch 45, Iteration 20, Train Loss: 43.70083999633789, LR: 0.0003
+INFO:__main__:Epoch 45, Iteration 25, Train Loss: 44.09185791015625, LR: 0.0003
+INFO:__main__:Epoch 45, Iteration 30, Train Loss: 44.011871337890625, LR: 0.0003
+INFO:__main__:Epoch 45, Iteration 35, Train Loss: 40.40413284301758, LR: 0.0003
+INFO:__main__:Epoch 45, Iteration 40, Train Loss: 41.470333099365234, LR: 0.0003
+INFO:__main__:Epoch 45, Validation Loss: 40.75818634033203
+INFO:__main__:Epoch 46, Iteration 0, Train Loss: 43.36795425415039, LR: 0.0003
+INFO:__main__:Epoch 46, Iteration 5, Train Loss: 39.24124526977539, LR: 0.0003
+INFO:__main__:Epoch 46, Iteration 10, Train Loss: 39.98511505126953, LR: 0.0003
+INFO:__main__:Epoch 46, Iteration 15, Train Loss: 39.52543258666992, LR: 0.0003
+INFO:__main__:Epoch 46, Iteration 20, Train Loss: 45.22404861450195, LR: 0.0003
+INFO:__main__:Epoch 46, Iteration 25, Train Loss: 42.23263931274414, LR: 0.0003
+INFO:__main__:Epoch 46, Iteration 30, Train Loss: 39.42211151123047, LR: 0.0003
+INFO:__main__:Epoch 46, Iteration 35, Train Loss: 42.090057373046875, LR: 0.0003
+INFO:__main__:Epoch 46, Iteration 40, Train Loss: 37.81919860839844, LR: 0.0003
+INFO:__main__:Epoch 46, Validation Loss: 40.80039596557617
+INFO:__main__:Epoch 47, Iteration 0, Train Loss: 45.30242156982422, LR: 0.0003
+INFO:__main__:Epoch 47, Iteration 5, Train Loss: 39.81414794921875, LR: 0.0003
+INFO:__main__:Epoch 47, Iteration 10, Train Loss: 42.20594787597656, LR: 0.0003
+INFO:__main__:Epoch 47, Iteration 15, Train Loss: 43.485599517822266, LR: 0.0003
+INFO:__main__:Epoch 47, Iteration 20, Train Loss: 41.67034912109375, LR: 0.0003
+INFO:__main__:Epoch 47, Iteration 25, Train Loss: 42.015953063964844, LR: 0.0003
+INFO:__main__:Epoch 47, Iteration 30, Train Loss: 41.535301208496094, LR: 0.0003
+INFO:__main__:Epoch 47, Iteration 35, Train Loss: 42.248390197753906, LR: 0.0003
+INFO:__main__:Epoch 47, Iteration 40, Train Loss: 48.616455078125, LR: 0.0003
+INFO:__main__:Epoch 47, Validation Loss: 40.83535107699308
+INFO:__main__:Epoch 48, Iteration 0, Train Loss: 39.87724304199219, LR: 0.0003
+INFO:__main__:Epoch 48, Iteration 5, Train Loss: 41.08804702758789, LR: 0.0003
+INFO:__main__:Epoch 48, Iteration 10, Train Loss: 41.861053466796875, LR: 0.0003
+INFO:__main__:Epoch 48, Iteration 15, Train Loss: 44.5340690612793, LR: 0.0003
+INFO:__main__:Epoch 48, Iteration 20, Train Loss: 40.521907806396484, LR: 0.0003
+INFO:__main__:Epoch 48, Iteration 25, Train Loss: 41.034759521484375, LR: 0.0003
+INFO:__main__:Epoch 48, Iteration 30, Train Loss: 41.61080551147461, LR: 0.0003
+INFO:__main__:Epoch 48, Iteration 35, Train Loss: 40.59833908081055, LR: 0.0003
+INFO:__main__:Epoch 48, Iteration 40, Train Loss: 42.68663787841797, LR: 0.0003
+INFO:__main__:Epoch 48, Validation Loss: 40.80790537053888
+INFO:__main__:Epoch 49, Iteration 0, Train Loss: 46.09230041503906, LR: 0.0003
+INFO:__main__:Epoch 49, Iteration 5, Train Loss: 42.913597106933594, LR: 0.0003
+INFO:__main__:Epoch 49, Iteration 10, Train Loss: 42.42186737060547, LR: 0.0003
+INFO:__main__:Epoch 49, Iteration 15, Train Loss: 40.611968994140625, LR: 0.0003
+INFO:__main__:Epoch 49, Iteration 20, Train Loss: 40.58250427246094, LR: 0.0003
+INFO:__main__:Epoch 49, Iteration 25, Train Loss: 40.676780700683594, LR: 0.0003
+INFO:__main__:Epoch 49, Iteration 30, Train Loss: 41.66857147216797, LR: 0.0003
+INFO:__main__:Epoch 49, Iteration 35, Train Loss: 41.87851333618164, LR: 0.0003
+INFO:__main__:Epoch 49, Iteration 40, Train Loss: 41.597694396972656, LR: 0.0003
+INFO:__main__:Epoch 49, Validation Loss: 40.83884568647905
+INFO:__main__:Epoch 50, Iteration 0, Train Loss: 45.26940155029297, LR: 0.0003
+INFO:__main__:Epoch 50, Iteration 5, Train Loss: 44.109458923339844, LR: 0.0003
+INFO:__main__:Epoch 50, Iteration 10, Train Loss: 46.1136589050293, LR: 0.0003
+INFO:__main__:Epoch 50, Iteration 15, Train Loss: 42.9725227355957, LR: 0.0003
+INFO:__main__:Epoch 50, Iteration 20, Train Loss: 44.90497589111328, LR: 0.0003
+INFO:__main__:Epoch 50, Iteration 25, Train Loss: 42.751041412353516, LR: 0.0003
+INFO:__main__:Epoch 50, Iteration 30, Train Loss: 41.7228889465332, LR: 0.0003
+INFO:__main__:Epoch 50, Iteration 35, Train Loss: 42.04701614379883, LR: 0.0003
+INFO:__main__:Epoch 50, Iteration 40, Train Loss: 45.56238555908203, LR: 0.0003
+INFO:__main__:Epoch 50, Validation Loss: 40.96000116521662
+INFO:__main__:Epoch 51, Iteration 0, Train Loss: 39.81346130371094, LR: 0.0003
+INFO:__main__:Epoch 51, Iteration 5, Train Loss: 44.189491271972656, LR: 0.0003
+INFO:__main__:Epoch 51, Iteration 10, Train Loss: 41.88287353515625, LR: 0.0003
+INFO:__main__:Epoch 51, Iteration 15, Train Loss: 42.477569580078125, LR: 0.0003
+INFO:__main__:Epoch 51, Iteration 20, Train Loss: 40.84616470336914, LR: 0.0003
+INFO:__main__:Epoch 51, Iteration 25, Train Loss: 40.50077819824219, LR: 0.0003
+INFO:__main__:Epoch 51, Iteration 30, Train Loss: 42.391212463378906, LR: 0.0003
+INFO:__main__:Epoch 51, Iteration 35, Train Loss: 41.396095275878906, LR: 0.0003
+INFO:__main__:Epoch 51, Iteration 40, Train Loss: 42.28662872314453, LR: 0.0003
+INFO:__main__:Epoch 51, Validation Loss: 40.78843134099787
+INFO:__main__:Epoch 52, Iteration 0, Train Loss: 42.61769104003906, LR: 0.0003
+INFO:__main__:Epoch 52, Iteration 5, Train Loss: 37.188011169433594, LR: 0.0003
+INFO:__main__:Epoch 52, Iteration 10, Train Loss: 40.68841552734375, LR: 0.0003
+INFO:__main__:Epoch 52, Iteration 15, Train Loss: 42.81352233886719, LR: 0.0003
+INFO:__main__:Epoch 52, Iteration 20, Train Loss: 44.22404861450195, LR: 0.0003
+INFO:__main__:Epoch 52, Iteration 25, Train Loss: 39.32867431640625, LR: 0.0003
+INFO:__main__:Epoch 52, Iteration 30, Train Loss: 42.244606018066406, LR: 0.0003
+INFO:__main__:Epoch 52, Iteration 35, Train Loss: 42.20824432373047, LR: 0.0003
+INFO:__main__:Epoch 52, Iteration 40, Train Loss: 42.23896789550781, LR: 0.0003
+INFO:__main__:Epoch 52, Validation Loss: 40.75852446122603
+INFO:__main__:Epoch 53, Iteration 0, Train Loss: 44.51713943481445, LR: 0.0003
+INFO:__main__:Epoch 53, Iteration 5, Train Loss: 41.376346588134766, LR: 0.0003
+INFO:__main__:Epoch 53, Iteration 10, Train Loss: 39.80178451538086, LR: 0.0003
+INFO:__main__:Epoch 53, Iteration 15, Train Loss: 39.62278747558594, LR: 0.0003
+INFO:__main__:Epoch 53, Iteration 20, Train Loss: 43.74171829223633, LR: 0.0003
+INFO:__main__:Epoch 53, Iteration 25, Train Loss: 42.69959259033203, LR: 0.0003
+INFO:__main__:Epoch 53, Iteration 30, Train Loss: 39.732791900634766, LR: 0.0003
+INFO:__main__:Epoch 53, Iteration 35, Train Loss: 44.86107635498047, LR: 0.0003
+INFO:__main__:Epoch 53, Iteration 40, Train Loss: 39.50935363769531, LR: 0.0003
+INFO:__main__:Epoch 53, Validation Loss: 40.839616948908024
+INFO:__main__:Epoch 54, Iteration 0, Train Loss: 41.4126091003418, LR: 0.0003
+INFO:__main__:Epoch 54, Iteration 5, Train Loss: 41.34994125366211, LR: 0.0003
+INFO:__main__:Epoch 54, Iteration 10, Train Loss: 40.89892578125, LR: 0.0003
+INFO:__main__:Epoch 54, Iteration 15, Train Loss: 41.96689224243164, LR: 0.0003
+INFO:__main__:Epoch 54, Iteration 20, Train Loss: 41.1888542175293, LR: 0.0003
+INFO:__main__:Epoch 54, Iteration 25, Train Loss: 41.35521697998047, LR: 0.0003
+INFO:__main__:Epoch 54, Iteration 30, Train Loss: 43.03437805175781, LR: 0.0003
+INFO:__main__:Epoch 54, Iteration 35, Train Loss: 41.912837982177734, LR: 0.0003
+INFO:__main__:Epoch 54, Iteration 40, Train Loss: 44.870025634765625, LR: 0.0003
+INFO:__main__:Epoch 54, Validation Loss: 40.92354618419301
+INFO:__main__:Epoch 55, Iteration 0, Train Loss: 43.429962158203125, LR: 0.0003
+INFO:__main__:Epoch 55, Iteration 5, Train Loss: 43.006431579589844, LR: 0.0003
+INFO:__main__:Epoch 55, Iteration 10, Train Loss: 39.06634521484375, LR: 0.0003
+INFO:__main__:Epoch 55, Iteration 15, Train Loss: 38.707191467285156, LR: 0.0003
+INFO:__main__:Epoch 55, Iteration 20, Train Loss: 41.516510009765625, LR: 0.0003
+INFO:__main__:Epoch 55, Iteration 25, Train Loss: 42.192848205566406, LR: 0.0003
+INFO:__main__:Epoch 55, Iteration 30, Train Loss: 38.7683219909668, LR: 0.0003
+INFO:__main__:Epoch 55, Iteration 35, Train Loss: 41.7281608581543, LR: 0.0003
+INFO:__main__:Epoch 55, Iteration 40, Train Loss: 41.37350845336914, LR: 0.0003
+INFO:__main__:Epoch 55, Validation Loss: 40.804372960870914
+INFO:__main__:Epoch 56, Iteration 0, Train Loss: 42.25135803222656, LR: 0.0003
+INFO:__main__:Epoch 56, Iteration 5, Train Loss: 40.68629837036133, LR: 0.0003
+INFO:__main__:Epoch 56, Iteration 10, Train Loss: 42.527740478515625, LR: 0.0003
+INFO:__main__:Epoch 56, Iteration 15, Train Loss: 40.0308952331543, LR: 0.0003
+INFO:__main__:Epoch 56, Iteration 20, Train Loss: 39.49363708496094, LR: 0.0003
+INFO:__main__:Epoch 56, Iteration 25, Train Loss: 41.34859085083008, LR: 0.0003
+INFO:__main__:Epoch 56, Iteration 30, Train Loss: 44.62261962890625, LR: 0.0003
+INFO:__main__:Epoch 56, Iteration 35, Train Loss: 42.354740142822266, LR: 0.0003
+INFO:__main__:Epoch 56, Iteration 40, Train Loss: 41.356109619140625, LR: 0.0003
+INFO:__main__:Epoch 56, Validation Loss: 40.92230155251243
+INFO:__main__:Epoch 57, Iteration 0, Train Loss: 42.60417938232422, LR: 0.0003
+INFO:__main__:Epoch 57, Iteration 5, Train Loss: 42.84672164916992, LR: 0.0003
+INFO:__main__:Epoch 57, Iteration 10, Train Loss: 40.102508544921875, LR: 0.0003
+INFO:__main__:Epoch 57, Iteration 15, Train Loss: 40.519554138183594, LR: 0.0003
+INFO:__main__:Epoch 57, Iteration 20, Train Loss: 44.68412780761719, LR: 0.0003
+INFO:__main__:Epoch 57, Iteration 25, Train Loss: 43.05809020996094, LR: 0.0003
+INFO:__main__:Epoch 57, Iteration 30, Train Loss: 40.84931945800781, LR: 0.0003
+INFO:__main__:Epoch 57, Iteration 35, Train Loss: 40.09449005126953, LR: 0.0003
+INFO:__main__:Epoch 57, Iteration 40, Train Loss: 41.7371940612793, LR: 0.0003
+INFO:__main__:Epoch 57, Validation Loss: 40.77438250454989
+INFO:__main__:Epoch 58, Iteration 0, Train Loss: 42.153236389160156, LR: 0.0003
+INFO:__main__:Epoch 58, Iteration 5, Train Loss: 43.658058166503906, LR: 0.0003
+INFO:__main__:Epoch 58, Iteration 10, Train Loss: 39.8892822265625, LR: 0.0003
+INFO:__main__:Epoch 58, Iteration 15, Train Loss: 39.38447952270508, LR: 0.0003
+INFO:__main__:Epoch 58, Iteration 20, Train Loss: 44.36968994140625, LR: 0.0003
+INFO:__main__:Epoch 58, Iteration 25, Train Loss: 39.52650833129883, LR: 0.0003
+INFO:__main__:Epoch 58, Iteration 30, Train Loss: 41.00008010864258, LR: 0.0003
+INFO:__main__:Epoch 58, Iteration 35, Train Loss: 44.42530059814453, LR: 0.0003
+INFO:__main__:Epoch 58, Iteration 40, Train Loss: 44.037967681884766, LR: 0.0003
+INFO:__main__:Epoch 58, Validation Loss: 40.780000166459516
+INFO:__main__:Epoch 59, Iteration 0, Train Loss: 42.71485137939453, LR: 0.0003
+INFO:__main__:Epoch 59, Iteration 5, Train Loss: 43.232704162597656, LR: 0.0003
+INFO:__main__:Epoch 59, Iteration 10, Train Loss: 42.633575439453125, LR: 0.0003
+INFO:__main__:Epoch 59, Iteration 15, Train Loss: 40.98815155029297, LR: 0.0003
+INFO:__main__:Epoch 59, Iteration 20, Train Loss: 39.586524963378906, LR: 0.0003
+INFO:__main__:Epoch 59, Iteration 25, Train Loss: 42.10505676269531, LR: 0.0003
+INFO:__main__:Epoch 59, Iteration 30, Train Loss: 43.565189361572266, LR: 0.0003
+INFO:__main__:Epoch 59, Iteration 35, Train Loss: 39.082027435302734, LR: 0.0003
+INFO:__main__:Epoch 59, Iteration 40, Train Loss: 41.647804260253906, LR: 0.0003
+INFO:__main__:Epoch 59, Validation Loss: 40.7762003811923
+INFO:__main__:Epoch 60, Iteration 0, Train Loss: 41.73373794555664, LR: 0.0003
+INFO:__main__:Epoch 60, Iteration 5, Train Loss: 37.96970748901367, LR: 0.0003
+INFO:__main__:Epoch 60, Iteration 10, Train Loss: 40.07795333862305, LR: 0.0003
+INFO:__main__:Epoch 60, Iteration 15, Train Loss: 41.889068603515625, LR: 0.0003
+INFO:__main__:Epoch 60, Iteration 20, Train Loss: 42.31648635864258, LR: 0.0003
+INFO:__main__:Epoch 60, Iteration 25, Train Loss: 40.512935638427734, LR: 0.0003
+INFO:__main__:Epoch 60, Iteration 30, Train Loss: 49.61423873901367, LR: 0.0003
+INFO:__main__:Epoch 60, Iteration 35, Train Loss: 43.75874328613281, LR: 0.0003
+INFO:__main__:Epoch 60, Iteration 40, Train Loss: 42.452362060546875, LR: 0.0003
+INFO:__main__:Epoch 60, Validation Loss: 40.882542003284804
+INFO:__main__:Epoch 61, Iteration 0, Train Loss: 40.68561553955078, LR: 0.0003
+INFO:__main__:Epoch 61, Iteration 5, Train Loss: 39.625450134277344, LR: 0.0003
+INFO:__main__:Epoch 61, Iteration 10, Train Loss: 43.320533752441406, LR: 0.0003
+INFO:__main__:Epoch 61, Iteration 15, Train Loss: 39.59989547729492, LR: 0.0003
+INFO:__main__:Epoch 61, Iteration 20, Train Loss: 42.18623352050781, LR: 0.0003
+INFO:__main__:Epoch 61, Iteration 25, Train Loss: 40.00663375854492, LR: 0.0003
+INFO:__main__:Epoch 61, Iteration 30, Train Loss: 41.05073928833008, LR: 0.0003
+INFO:__main__:Epoch 61, Iteration 35, Train Loss: 41.931129455566406, LR: 0.0003
+INFO:__main__:Epoch 61, Iteration 40, Train Loss: 39.567588806152344, LR: 0.0003
+INFO:__main__:Epoch 61, Validation Loss: 40.972307378595524
+INFO:__main__:Epoch 62, Iteration 0, Train Loss: 40.061946868896484, LR: 0.0003
+INFO:__main__:Epoch 62, Iteration 5, Train Loss: 40.295555114746094, LR: 0.0003
+INFO:__main__:Epoch 62, Iteration 10, Train Loss: 39.54475402832031, LR: 0.0003
+INFO:__main__:Epoch 62, Iteration 15, Train Loss: 42.20574951171875, LR: 0.0003
+INFO:__main__:Epoch 62, Iteration 20, Train Loss: 41.25210189819336, LR: 0.0003
+INFO:__main__:Epoch 62, Iteration 25, Train Loss: 43.688323974609375, LR: 0.0003
+INFO:__main__:Epoch 62, Iteration 30, Train Loss: 41.66309356689453, LR: 0.0003
+INFO:__main__:Epoch 62, Iteration 35, Train Loss: 42.23063278198242, LR: 0.0003
+INFO:__main__:Epoch 62, Iteration 40, Train Loss: 44.68013000488281, LR: 0.0003
+INFO:__main__:Epoch 62, Validation Loss: 40.78360366821289
+INFO:__main__:Epoch 63, Iteration 0, Train Loss: 41.85608673095703, LR: 0.0003
+INFO:__main__:Epoch 63, Iteration 5, Train Loss: 42.1771354675293, LR: 0.0003
+INFO:__main__:Epoch 63, Iteration 10, Train Loss: 43.954750061035156, LR: 0.0003
+INFO:__main__:Epoch 63, Iteration 15, Train Loss: 40.922035217285156, LR: 0.0003
+INFO:__main__:Epoch 63, Iteration 20, Train Loss: 42.11359786987305, LR: 0.0003
+INFO:__main__:Epoch 63, Iteration 25, Train Loss: 40.38737106323242, LR: 0.0003
+INFO:__main__:Epoch 63, Iteration 30, Train Loss: 42.574344635009766, LR: 0.0003
+INFO:__main__:Epoch 63, Iteration 35, Train Loss: 40.28123092651367, LR: 0.0003
+INFO:__main__:Epoch 63, Iteration 40, Train Loss: 40.785926818847656, LR: 0.0003
+INFO:__main__:Epoch 63, Validation Loss: 40.77644521539862
+INFO:__main__:Epoch 64, Iteration 0, Train Loss: 42.9972038269043, LR: 0.0003
+INFO:__main__:Epoch 64, Iteration 5, Train Loss: 40.242156982421875, LR: 0.0003
+INFO:__main__:Epoch 64, Iteration 10, Train Loss: 45.23701477050781, LR: 0.0003
+INFO:__main__:Epoch 64, Iteration 15, Train Loss: 41.038299560546875, LR: 0.0003
+INFO:__main__:Epoch 64, Iteration 20, Train Loss: 40.76062774658203, LR: 0.0003
+INFO:__main__:Epoch 64, Iteration 25, Train Loss: 40.54474639892578, LR: 0.0003
+INFO:__main__:Epoch 64, Iteration 30, Train Loss: 41.8130989074707, LR: 0.0003
+INFO:__main__:Epoch 64, Iteration 35, Train Loss: 42.29753494262695, LR: 0.0003
+INFO:__main__:Epoch 64, Iteration 40, Train Loss: 42.0885124206543, LR: 0.0003
+INFO:__main__:Epoch 64, Validation Loss: 40.76968210393732
+INFO:__main__:Epoch 65, Iteration 0, Train Loss: 39.450416564941406, LR: 0.0003
+INFO:__main__:Epoch 65, Iteration 5, Train Loss: 40.13137435913086, LR: 0.0003
+INFO:__main__:Epoch 65, Iteration 10, Train Loss: 40.549644470214844, LR: 0.0003
+INFO:__main__:Epoch 65, Iteration 15, Train Loss: 44.06896209716797, LR: 0.0003
+INFO:__main__:Epoch 65, Iteration 20, Train Loss: 40.85771179199219, LR: 0.0003
+INFO:__main__:Epoch 65, Iteration 25, Train Loss: 41.86965560913086, LR: 0.0003
+INFO:__main__:Epoch 65, Iteration 30, Train Loss: 40.518280029296875, LR: 0.0003
+INFO:__main__:Epoch 65, Iteration 35, Train Loss: 44.32683181762695, LR: 0.0003
+INFO:__main__:Epoch 65, Iteration 40, Train Loss: 38.955833435058594, LR: 0.0003
+INFO:__main__:Epoch 65, Validation Loss: 40.815272244540125
+INFO:__main__:Epoch 66, Iteration 0, Train Loss: 40.59484100341797, LR: 0.0003
+INFO:__main__:Epoch 66, Iteration 5, Train Loss: 38.60057830810547, LR: 0.0003
+INFO:__main__:Epoch 66, Iteration 10, Train Loss: 39.99649429321289, LR: 0.0003
+INFO:__main__:Epoch 66, Iteration 15, Train Loss: 43.37025833129883, LR: 0.0003
+INFO:__main__:Epoch 66, Iteration 20, Train Loss: 40.62503433227539, LR: 0.0003
+INFO:__main__:Epoch 66, Iteration 25, Train Loss: 48.01932144165039, LR: 0.0003
+INFO:__main__:Epoch 66, Iteration 30, Train Loss: 42.1650276184082, LR: 0.0003
+INFO:__main__:Epoch 66, Iteration 35, Train Loss: 41.38844299316406, LR: 0.0003
+INFO:__main__:Epoch 66, Iteration 40, Train Loss: 44.14079666137695, LR: 0.0003
+INFO:__main__:Epoch 66, Validation Loss: 40.77663525668058
+INFO:__main__:Epoch 67, Iteration 0, Train Loss: 42.65311813354492, LR: 0.0003
+INFO:__main__:Epoch 67, Iteration 5, Train Loss: 42.29116439819336, LR: 0.0003
+INFO:__main__:Epoch 67, Iteration 10, Train Loss: 42.77790451049805, LR: 0.0003
+INFO:__main__:Epoch 67, Iteration 15, Train Loss: 40.87436294555664, LR: 0.0003
+INFO:__main__:Epoch 67, Iteration 20, Train Loss: 43.56873321533203, LR: 0.0003
+INFO:__main__:Epoch 67, Iteration 25, Train Loss: 41.13675308227539, LR: 0.0003
+INFO:__main__:Epoch 67, Iteration 30, Train Loss: 41.73979187011719, LR: 0.0003
+INFO:__main__:Epoch 67, Iteration 35, Train Loss: 43.485496520996094, LR: 0.0003
+INFO:__main__:Epoch 67, Iteration 40, Train Loss: 39.320823669433594, LR: 0.0003
+INFO:__main__:Epoch 67, Validation Loss: 40.789080533114344
+INFO:__main__:Epoch 68, Iteration 0, Train Loss: 42.57718276977539, LR: 0.0003
+INFO:__main__:Epoch 68, Iteration 5, Train Loss: 39.66636657714844, LR: 0.0003
+INFO:__main__:Epoch 68, Iteration 10, Train Loss: 39.35993957519531, LR: 0.0003
+INFO:__main__:Epoch 68, Iteration 15, Train Loss: 43.448463439941406, LR: 0.0003
+INFO:__main__:Epoch 68, Iteration 20, Train Loss: 39.740352630615234, LR: 0.0003
+INFO:__main__:Epoch 68, Iteration 25, Train Loss: 41.687232971191406, LR: 0.0003
+INFO:__main__:Epoch 68, Iteration 30, Train Loss: 42.24059295654297, LR: 0.0003
+INFO:__main__:Epoch 68, Iteration 35, Train Loss: 42.12566375732422, LR: 0.0003
+INFO:__main__:Epoch 68, Iteration 40, Train Loss: 43.852500915527344, LR: 0.0003
+INFO:__main__:Epoch 68, Validation Loss: 40.80591860684481
+INFO:__main__:Epoch 69, Iteration 0, Train Loss: 40.124656677246094, LR: 0.0003
+INFO:__main__:Epoch 69, Iteration 5, Train Loss: 41.200477600097656, LR: 0.0003
+INFO:__main__:Epoch 69, Iteration 10, Train Loss: 43.62087631225586, LR: 0.0003
+INFO:__main__:Epoch 69, Iteration 15, Train Loss: 43.17051315307617, LR: 0.0003
+INFO:__main__:Epoch 69, Iteration 20, Train Loss: 40.36870574951172, LR: 0.0003
+INFO:__main__:Epoch 69, Iteration 25, Train Loss: 41.4106559753418, LR: 0.0003
+INFO:__main__:Epoch 69, Iteration 30, Train Loss: 41.62263107299805, LR: 0.0003
+INFO:__main__:Epoch 69, Iteration 35, Train Loss: 40.92196273803711, LR: 0.0003
+INFO:__main__:Epoch 69, Iteration 40, Train Loss: 41.16067123413086, LR: 0.0003
+INFO:__main__:Epoch 69, Validation Loss: 40.808351343328304
+INFO:__main__:Epoch 70, Iteration 0, Train Loss: 41.12968826293945, LR: 0.0003
+INFO:__main__:Epoch 70, Iteration 5, Train Loss: 44.194236755371094, LR: 0.0003
+INFO:__main__:Epoch 70, Iteration 10, Train Loss: 40.27257537841797, LR: 0.0003
+INFO:__main__:Epoch 70, Iteration 15, Train Loss: 40.14704895019531, LR: 0.0003
+INFO:__main__:Epoch 70, Iteration 20, Train Loss: 41.77610397338867, LR: 0.0003
+INFO:__main__:Epoch 70, Iteration 25, Train Loss: 41.50387954711914, LR: 0.0003
+INFO:__main__:Epoch 70, Iteration 30, Train Loss: 41.50455093383789, LR: 0.0003
+INFO:__main__:Epoch 70, Iteration 35, Train Loss: 44.055747985839844, LR: 0.0003
+INFO:__main__:Epoch 70, Iteration 40, Train Loss: 44.948486328125, LR: 0.0003
+INFO:__main__:Epoch 70, Validation Loss: 40.77534242109819
+INFO:__main__:Epoch 71, Iteration 0, Train Loss: 43.845909118652344, LR: 0.0003
+INFO:__main__:Epoch 71, Iteration 5, Train Loss: 40.54946517944336, LR: 0.0003
+INFO:__main__:Epoch 71, Iteration 10, Train Loss: 42.855567932128906, LR: 0.0003
+INFO:__main__:Epoch 71, Iteration 15, Train Loss: 41.73333740234375, LR: 0.0003
+INFO:__main__:Epoch 71, Iteration 20, Train Loss: 42.60129165649414, LR: 0.0003
+INFO:__main__:Epoch 71, Iteration 25, Train Loss: 42.32780075073242, LR: 0.0003
+INFO:__main__:Epoch 71, Iteration 30, Train Loss: 42.03110122680664, LR: 0.0003
+INFO:__main__:Epoch 71, Iteration 35, Train Loss: 43.68402862548828, LR: 0.0003
+INFO:__main__:Epoch 71, Iteration 40, Train Loss: 39.647132873535156, LR: 0.0003
+INFO:__main__:Epoch 71, Validation Loss: 40.90634051236239
+INFO:__main__:Epoch 72, Iteration 0, Train Loss: 43.3814697265625, LR: 0.0003
+INFO:__main__:Epoch 72, Iteration 5, Train Loss: 44.98069381713867, LR: 0.0003
+INFO:__main__:Epoch 72, Iteration 10, Train Loss: 43.01603317260742, LR: 0.0003
+INFO:__main__:Epoch 72, Iteration 15, Train Loss: 38.44066619873047, LR: 0.0003
+INFO:__main__:Epoch 72, Iteration 20, Train Loss: 39.72322082519531, LR: 0.0003
+INFO:__main__:Epoch 72, Iteration 25, Train Loss: 43.50993728637695, LR: 0.0003
+INFO:__main__:Epoch 72, Iteration 30, Train Loss: 43.81847381591797, LR: 0.0003
+INFO:__main__:Epoch 72, Iteration 35, Train Loss: 40.94707489013672, LR: 0.0003
+INFO:__main__:Epoch 72, Iteration 40, Train Loss: 39.68907165527344, LR: 0.0003
+INFO:__main__:Epoch 72, Validation Loss: 40.93344393643466
+INFO:__main__:Epoch 73, Iteration 0, Train Loss: 45.323509216308594, LR: 0.0003
+INFO:__main__:Epoch 73, Iteration 5, Train Loss: 40.644466400146484, LR: 0.0003
+INFO:__main__:Epoch 73, Iteration 10, Train Loss: 42.18096923828125, LR: 0.0003
+INFO:__main__:Epoch 73, Iteration 15, Train Loss: 43.10958480834961, LR: 0.0003
+INFO:__main__:Epoch 73, Iteration 20, Train Loss: 44.90106201171875, LR: 0.0003
+INFO:__main__:Epoch 73, Iteration 25, Train Loss: 39.98052978515625, LR: 0.0003
+INFO:__main__:Epoch 73, Iteration 30, Train Loss: 45.17280578613281, LR: 0.0003
+INFO:__main__:Epoch 73, Iteration 35, Train Loss: 40.64313507080078, LR: 0.0003
+INFO:__main__:Epoch 73, Iteration 40, Train Loss: 43.20655822753906, LR: 0.0003
+INFO:__main__:Epoch 73, Validation Loss: 40.78305886008523
+INFO:__main__:Epoch 74, Iteration 0, Train Loss: 40.891815185546875, LR: 0.0003
+INFO:__main__:Epoch 74, Iteration 5, Train Loss: 42.08977508544922, LR: 0.0003
+INFO:__main__:Epoch 74, Iteration 10, Train Loss: 40.537017822265625, LR: 0.0003
+INFO:__main__:Epoch 74, Iteration 15, Train Loss: 40.809913635253906, LR: 0.0003
+INFO:__main__:Epoch 74, Iteration 20, Train Loss: 42.254608154296875, LR: 0.0003
+INFO:__main__:Epoch 74, Iteration 25, Train Loss: 43.373756408691406, LR: 0.0003
+INFO:__main__:Epoch 74, Iteration 30, Train Loss: 40.28331756591797, LR: 0.0003
+INFO:__main__:Epoch 74, Iteration 35, Train Loss: 42.672996520996094, LR: 0.0003
+INFO:__main__:Epoch 74, Iteration 40, Train Loss: 43.841583251953125, LR: 0.0003
+INFO:__main__:Epoch 74, Validation Loss: 40.79508035833185
+INFO:__main__:Epoch 75, Iteration 0, Train Loss: 43.51262283325195, LR: 0.0003
+INFO:__main__:Epoch 75, Iteration 5, Train Loss: 42.48632049560547, LR: 0.0003
+INFO:__main__:Epoch 75, Iteration 10, Train Loss: 43.75761795043945, LR: 0.0003
+INFO:__main__:Epoch 75, Iteration 15, Train Loss: 42.220306396484375, LR: 0.0003
+INFO:__main__:Epoch 75, Iteration 20, Train Loss: 40.641563415527344, LR: 0.0003
+INFO:__main__:Epoch 75, Iteration 25, Train Loss: 41.15925598144531, LR: 0.0003
+INFO:__main__:Epoch 75, Iteration 30, Train Loss: 38.68491744995117, LR: 0.0003
+INFO:__main__:Epoch 75, Iteration 35, Train Loss: 38.845455169677734, LR: 0.0003
+INFO:__main__:Epoch 75, Iteration 40, Train Loss: 44.129634857177734, LR: 0.0003
+INFO:__main__:Epoch 75, Validation Loss: 40.82691088589755
+INFO:__main__:Epoch 76, Iteration 0, Train Loss: 43.64649963378906, LR: 0.0003
+INFO:__main__:Epoch 76, Iteration 5, Train Loss: 39.14154815673828, LR: 0.0003
+INFO:__main__:Epoch 76, Iteration 10, Train Loss: 41.91289138793945, LR: 0.0003
+INFO:__main__:Epoch 76, Iteration 15, Train Loss: 41.27238082885742, LR: 0.0003
+INFO:__main__:Epoch 76, Iteration 20, Train Loss: 38.548301696777344, LR: 0.0003
+INFO:__main__:Epoch 76, Iteration 25, Train Loss: 40.29375076293945, LR: 0.0003
+INFO:__main__:Epoch 76, Iteration 30, Train Loss: 39.965599060058594, LR: 0.0003
+INFO:__main__:Epoch 76, Iteration 35, Train Loss: 41.331031799316406, LR: 0.0003
+INFO:__main__:Epoch 76, Iteration 40, Train Loss: 39.70920944213867, LR: 0.0003
+INFO:__main__:Epoch 76, Validation Loss: 40.831239526922054
+INFO:__main__:Epoch 77, Iteration 0, Train Loss: 41.17594528198242, LR: 0.0003
+INFO:__main__:Epoch 77, Iteration 5, Train Loss: 44.90394973754883, LR: 0.0003
+INFO:__main__:Epoch 77, Iteration 10, Train Loss: 38.28495407104492, LR: 0.0003
+INFO:__main__:Epoch 77, Iteration 15, Train Loss: 43.26731872558594, LR: 0.0003
+INFO:__main__:Epoch 77, Iteration 20, Train Loss: 44.07778549194336, LR: 0.0003
+INFO:__main__:Epoch 77, Iteration 25, Train Loss: 41.75196838378906, LR: 0.0003
+INFO:__main__:Epoch 77, Iteration 30, Train Loss: 43.90379333496094, LR: 0.0003
+INFO:__main__:Epoch 77, Iteration 35, Train Loss: 41.023433685302734, LR: 0.0003
+INFO:__main__:Epoch 77, Iteration 40, Train Loss: 42.9787712097168, LR: 0.0003
+INFO:__main__:Epoch 77, Validation Loss: 40.78954003073952
+INFO:__main__:Epoch 78, Iteration 0, Train Loss: 42.30192184448242, LR: 0.0003
+INFO:__main__:Epoch 78, Iteration 5, Train Loss: 39.76927947998047, LR: 0.0003
+INFO:__main__:Epoch 78, Iteration 10, Train Loss: 41.02076721191406, LR: 0.0003
+INFO:__main__:Epoch 78, Iteration 15, Train Loss: 43.386207580566406, LR: 0.0003
+INFO:__main__:Epoch 78, Iteration 20, Train Loss: 41.61766815185547, LR: 0.0003
+INFO:__main__:Epoch 78, Iteration 25, Train Loss: 40.887367248535156, LR: 0.0003
+INFO:__main__:Epoch 78, Iteration 30, Train Loss: 43.622196197509766, LR: 0.0003
+INFO:__main__:Epoch 78, Iteration 35, Train Loss: 39.0996208190918, LR: 0.0003
+INFO:__main__:Epoch 78, Iteration 40, Train Loss: 42.985435485839844, LR: 0.0003
+INFO:__main__:Epoch 78, Validation Loss: 40.88522442904386
+INFO:__main__:Epoch 79, Iteration 0, Train Loss: 40.35734176635742, LR: 0.0003
+INFO:__main__:Epoch 79, Iteration 5, Train Loss: 44.10605239868164, LR: 0.0003
+INFO:__main__:Epoch 79, Iteration 10, Train Loss: 42.023658752441406, LR: 0.0003
+INFO:__main__:Epoch 79, Iteration 15, Train Loss: 42.94649124145508, LR: 0.0003
+INFO:__main__:Epoch 79, Iteration 20, Train Loss: 42.91690444946289, LR: 0.0003
+INFO:__main__:Epoch 79, Iteration 25, Train Loss: 40.06780242919922, LR: 0.0003
+INFO:__main__:Epoch 79, Iteration 30, Train Loss: 41.24664306640625, LR: 0.0003
+INFO:__main__:Epoch 79, Iteration 35, Train Loss: 43.38489532470703, LR: 0.0003
+INFO:__main__:Epoch 79, Iteration 40, Train Loss: 42.221435546875, LR: 0.0003
+INFO:__main__:Epoch 79, Validation Loss: 40.795988603071734
+INFO:__main__:Epoch 80, Iteration 0, Train Loss: 43.421730041503906, LR: 0.0003
+INFO:__main__:Epoch 80, Iteration 5, Train Loss: 40.8802490234375, LR: 0.0003
+INFO:__main__:Epoch 80, Iteration 10, Train Loss: 44.641265869140625, LR: 0.0003
+INFO:__main__:Epoch 80, Iteration 15, Train Loss: 40.516483306884766, LR: 0.0003
+INFO:__main__:Epoch 80, Iteration 20, Train Loss: 40.410377502441406, LR: 0.0003
+INFO:__main__:Epoch 80, Iteration 25, Train Loss: 43.853660583496094, LR: 0.0003
+INFO:__main__:Epoch 80, Iteration 30, Train Loss: 40.962135314941406, LR: 0.0003
+INFO:__main__:Epoch 80, Iteration 35, Train Loss: 40.646507263183594, LR: 0.0003
+INFO:__main__:Epoch 80, Iteration 40, Train Loss: 41.92029571533203, LR: 0.0003
+INFO:__main__:Epoch 80, Validation Loss: 40.878785220059484
+INFO:__main__:Epoch 81, Iteration 0, Train Loss: 40.016845703125, LR: 0.0003
+INFO:__main__:Epoch 81, Iteration 5, Train Loss: 39.43996810913086, LR: 0.0003
+INFO:__main__:Epoch 81, Iteration 10, Train Loss: 39.592994689941406, LR: 0.0003
+INFO:__main__:Epoch 81, Iteration 15, Train Loss: 41.8922119140625, LR: 0.0003
+INFO:__main__:Epoch 81, Iteration 20, Train Loss: 44.343074798583984, LR: 0.0003
+INFO:__main__:Epoch 81, Iteration 25, Train Loss: 40.13731002807617, LR: 0.0003
+INFO:__main__:Epoch 81, Iteration 30, Train Loss: 41.697139739990234, LR: 0.0003
+INFO:__main__:Epoch 81, Iteration 35, Train Loss: 39.13238525390625, LR: 0.0003
+INFO:__main__:Epoch 81, Iteration 40, Train Loss: 40.26478576660156, LR: 0.0003
+INFO:__main__:Epoch 81, Validation Loss: 40.804969094016336
+INFO:__main__:Epoch 82, Iteration 0, Train Loss: 42.03122329711914, LR: 0.0003
+INFO:__main__:Epoch 82, Iteration 5, Train Loss: 40.94973373413086, LR: 0.0003
+INFO:__main__:Epoch 82, Iteration 10, Train Loss: 41.52325439453125, LR: 0.0003
+INFO:__main__:Epoch 82, Iteration 15, Train Loss: 40.59660339355469, LR: 0.0003
+INFO:__main__:Epoch 82, Iteration 20, Train Loss: 39.62096405029297, LR: 0.0003
+INFO:__main__:Epoch 82, Iteration 25, Train Loss: 44.057613372802734, LR: 0.0003
+INFO:__main__:Epoch 82, Iteration 30, Train Loss: 39.32274627685547, LR: 0.0003
+INFO:__main__:Epoch 82, Iteration 35, Train Loss: 43.718544006347656, LR: 0.0003
+INFO:__main__:Epoch 82, Iteration 40, Train Loss: 40.235191345214844, LR: 0.0003
+INFO:__main__:Epoch 82, Validation Loss: 41.10068130493164
+INFO:__main__:Epoch 83, Iteration 0, Train Loss: 42.23561096191406, LR: 0.0003
+INFO:__main__:Epoch 83, Iteration 5, Train Loss: 40.498260498046875, LR: 0.0003
+INFO:__main__:Epoch 83, Iteration 10, Train Loss: 42.326393127441406, LR: 0.0003
+INFO:__main__:Epoch 83, Iteration 15, Train Loss: 42.78776550292969, LR: 0.0003
+INFO:__main__:Epoch 83, Iteration 20, Train Loss: 43.03541564941406, LR: 0.0003
+INFO:__main__:Epoch 83, Iteration 25, Train Loss: 37.722015380859375, LR: 0.0003
+INFO:__main__:Epoch 83, Iteration 30, Train Loss: 41.1327018737793, LR: 0.0003
+INFO:__main__:Epoch 83, Iteration 35, Train Loss: 41.37499237060547, LR: 0.0003
+INFO:__main__:Epoch 83, Iteration 40, Train Loss: 40.406463623046875, LR: 0.0003
+INFO:__main__:Epoch 83, Validation Loss: 40.78328462080522
+INFO:__main__:Epoch 84, Iteration 0, Train Loss: 39.46907043457031, LR: 0.0003
+INFO:__main__:Epoch 84, Iteration 5, Train Loss: 41.66853332519531, LR: 0.0003
+INFO:__main__:Epoch 84, Iteration 10, Train Loss: 43.15106201171875, LR: 0.0003
+INFO:__main__:Epoch 84, Iteration 15, Train Loss: 43.011497497558594, LR: 0.0003
+INFO:__main__:Epoch 84, Iteration 20, Train Loss: 42.859249114990234, LR: 0.0003
+INFO:__main__:Epoch 84, Iteration 25, Train Loss: 43.354854583740234, LR: 0.0003
+INFO:__main__:Epoch 84, Iteration 30, Train Loss: 44.940120697021484, LR: 0.0003
+INFO:__main__:Epoch 84, Iteration 35, Train Loss: 45.995174407958984, LR: 0.0003
+INFO:__main__:Epoch 84, Iteration 40, Train Loss: 41.94102478027344, LR: 0.0003
+INFO:__main__:Epoch 84, Validation Loss: 40.78284454345703
+INFO:__main__:Epoch 85, Iteration 0, Train Loss: 40.453338623046875, LR: 0.0003
+INFO:__main__:Epoch 85, Iteration 5, Train Loss: 41.939090728759766, LR: 0.0003
+INFO:__main__:Epoch 85, Iteration 10, Train Loss: 40.69218444824219, LR: 0.0003
+INFO:__main__:Epoch 85, Iteration 15, Train Loss: 41.49103546142578, LR: 0.0003
+INFO:__main__:Epoch 85, Iteration 20, Train Loss: 40.424964904785156, LR: 0.0003
+INFO:__main__:Epoch 85, Iteration 25, Train Loss: 46.412750244140625, LR: 0.0003
+INFO:__main__:Epoch 85, Iteration 30, Train Loss: 41.42995834350586, LR: 0.0003
+INFO:__main__:Epoch 85, Iteration 35, Train Loss: 42.689369201660156, LR: 0.0003
+INFO:__main__:Epoch 85, Iteration 40, Train Loss: 43.06944274902344, LR: 0.0003
+INFO:__main__:Epoch 85, Validation Loss: 40.816448558460586
+INFO:__main__:Epoch 86, Iteration 0, Train Loss: 39.46428680419922, LR: 0.0003
+INFO:__main__:Epoch 86, Iteration 5, Train Loss: 40.677215576171875, LR: 0.0003
+INFO:__main__:Epoch 86, Iteration 10, Train Loss: 40.572784423828125, LR: 0.0003
+INFO:__main__:Epoch 86, Iteration 15, Train Loss: 39.42876434326172, LR: 0.0003
+INFO:__main__:Epoch 86, Iteration 20, Train Loss: 40.1427116394043, LR: 0.0003
+INFO:__main__:Epoch 86, Iteration 25, Train Loss: 43.16265106201172, LR: 0.0003
+INFO:__main__:Epoch 86, Iteration 30, Train Loss: 41.54659652709961, LR: 0.0003
+INFO:__main__:Epoch 86, Iteration 35, Train Loss: 42.91582489013672, LR: 0.0003
+INFO:__main__:Epoch 86, Iteration 40, Train Loss: 44.237430572509766, LR: 0.0003
+INFO:__main__:Epoch 86, Validation Loss: 40.80847237326882
+INFO:__main__:Epoch 87, Iteration 0, Train Loss: 42.397544860839844, LR: 0.0003
+INFO:__main__:Epoch 87, Iteration 5, Train Loss: 41.506805419921875, LR: 0.0003
+INFO:__main__:Epoch 87, Iteration 10, Train Loss: 42.37062072753906, LR: 0.0003
+INFO:__main__:Epoch 87, Iteration 15, Train Loss: 40.07000732421875, LR: 0.0003
+INFO:__main__:Epoch 87, Iteration 20, Train Loss: 38.5479736328125, LR: 0.0003
+INFO:__main__:Epoch 87, Iteration 25, Train Loss: 42.95436096191406, LR: 0.0003
+INFO:__main__:Epoch 87, Iteration 30, Train Loss: 41.985191345214844, LR: 0.0003
+INFO:__main__:Epoch 87, Iteration 35, Train Loss: 41.43209457397461, LR: 0.0003
+INFO:__main__:Epoch 87, Iteration 40, Train Loss: 40.65738296508789, LR: 0.0003
+INFO:__main__:Epoch 87, Validation Loss: 40.85191414572976
+INFO:__main__:Epoch 88, Iteration 0, Train Loss: 41.22166442871094, LR: 0.0003
+INFO:__main__:Epoch 88, Iteration 5, Train Loss: 41.48467254638672, LR: 0.0003
+INFO:__main__:Epoch 88, Iteration 10, Train Loss: 41.24650573730469, LR: 0.0003
+INFO:__main__:Epoch 88, Iteration 15, Train Loss: 43.21152877807617, LR: 0.0003
+INFO:__main__:Epoch 88, Iteration 20, Train Loss: 41.189613342285156, LR: 0.0003
+INFO:__main__:Epoch 88, Iteration 25, Train Loss: 45.25336456298828, LR: 0.0003
+INFO:__main__:Epoch 88, Iteration 30, Train Loss: 43.585350036621094, LR: 0.0003
+INFO:__main__:Epoch 88, Iteration 35, Train Loss: 42.20249938964844, LR: 0.0003
+INFO:__main__:Epoch 88, Iteration 40, Train Loss: 44.205387115478516, LR: 0.0003
+INFO:__main__:Epoch 88, Validation Loss: 40.81258912519975
+INFO:__main__:Epoch 89, Iteration 0, Train Loss: 41.250328063964844, LR: 0.0003
+INFO:__main__:Epoch 89, Iteration 5, Train Loss: 39.49885177612305, LR: 0.0003
+INFO:__main__:Epoch 89, Iteration 10, Train Loss: 44.867637634277344, LR: 0.0003
+INFO:__main__:Epoch 89, Iteration 15, Train Loss: 44.94515609741211, LR: 0.0003
+INFO:__main__:Epoch 89, Iteration 20, Train Loss: 41.61314010620117, LR: 0.0003
+INFO:__main__:Epoch 89, Iteration 25, Train Loss: 41.736610412597656, LR: 0.0003
+INFO:__main__:Epoch 89, Iteration 30, Train Loss: 41.77095031738281, LR: 0.0003
+INFO:__main__:Epoch 89, Iteration 35, Train Loss: 40.19166564941406, LR: 0.0003
+INFO:__main__:Epoch 89, Iteration 40, Train Loss: 44.21049118041992, LR: 0.0003
+INFO:__main__:Epoch 89, Validation Loss: 41.10688781738281
+INFO:__main__:Epoch 90, Iteration 0, Train Loss: 44.243431091308594, LR: 0.0003
+INFO:__main__:Epoch 90, Iteration 5, Train Loss: 41.95118713378906, LR: 0.0003
+INFO:__main__:Epoch 90, Iteration 10, Train Loss: 41.72265625, LR: 0.0003
+INFO:__main__:Epoch 90, Iteration 15, Train Loss: 40.552913665771484, LR: 0.0003
+INFO:__main__:Epoch 90, Iteration 20, Train Loss: 40.762672424316406, LR: 0.0003
+INFO:__main__:Epoch 90, Iteration 25, Train Loss: 42.053829193115234, LR: 0.0003
+INFO:__main__:Epoch 90, Iteration 30, Train Loss: 42.01254653930664, LR: 0.0003
+INFO:__main__:Epoch 90, Iteration 35, Train Loss: 39.05059051513672, LR: 0.0003
+INFO:__main__:Epoch 90, Iteration 40, Train Loss: 41.82536315917969, LR: 0.0003
+INFO:__main__:Epoch 90, Validation Loss: 40.833365353670985
+INFO:__main__:Epoch 91, Iteration 0, Train Loss: 45.29864501953125, LR: 0.0003
+INFO:__main__:Epoch 91, Iteration 5, Train Loss: 43.640663146972656, LR: 0.0003
+INFO:__main__:Epoch 91, Iteration 10, Train Loss: 39.951995849609375, LR: 0.0003
+INFO:__main__:Epoch 91, Iteration 15, Train Loss: 40.90898132324219, LR: 0.0003
+INFO:__main__:Epoch 91, Iteration 20, Train Loss: 45.58594512939453, LR: 0.0003
+INFO:__main__:Epoch 91, Iteration 25, Train Loss: 40.74943161010742, LR: 0.0003
+INFO:__main__:Epoch 91, Iteration 30, Train Loss: 42.979740142822266, LR: 0.0003
+INFO:__main__:Epoch 91, Iteration 35, Train Loss: 40.47111892700195, LR: 0.0003
+INFO:__main__:Epoch 91, Iteration 40, Train Loss: 40.997215270996094, LR: 0.0003
+INFO:__main__:Epoch 91, Validation Loss: 40.881765538995914
+INFO:__main__:Epoch 92, Iteration 0, Train Loss: 40.9962158203125, LR: 0.0003
+INFO:__main__:Epoch 92, Iteration 5, Train Loss: 41.39447784423828, LR: 0.0003
+INFO:__main__:Epoch 92, Iteration 10, Train Loss: 41.635799407958984, LR: 0.0003
+INFO:__main__:Epoch 92, Iteration 15, Train Loss: 42.87554931640625, LR: 0.0003
+INFO:__main__:Epoch 92, Iteration 20, Train Loss: 39.486141204833984, LR: 0.0003
+INFO:__main__:Epoch 92, Iteration 25, Train Loss: 43.01956558227539, LR: 0.0003
+INFO:__main__:Epoch 92, Iteration 30, Train Loss: 42.04673767089844, LR: 0.0003
+INFO:__main__:Epoch 92, Iteration 35, Train Loss: 43.60095977783203, LR: 0.0003
+INFO:__main__:Epoch 92, Iteration 40, Train Loss: 40.68162536621094, LR: 0.0003
+INFO:__main__:Epoch 92, Validation Loss: 40.93597550825639
+INFO:__main__:Epoch 93, Iteration 0, Train Loss: 40.11750793457031, LR: 0.0003
+INFO:__main__:Epoch 93, Iteration 5, Train Loss: 40.848350524902344, LR: 0.0003
+INFO:__main__:Epoch 93, Iteration 10, Train Loss: 38.615543365478516, LR: 0.0003
+INFO:__main__:Epoch 93, Iteration 15, Train Loss: 42.176666259765625, LR: 0.0003
+INFO:__main__:Epoch 93, Iteration 20, Train Loss: 43.63192367553711, LR: 0.0003
+INFO:__main__:Epoch 93, Iteration 25, Train Loss: 37.70445251464844, LR: 0.0003
+INFO:__main__:Epoch 93, Iteration 30, Train Loss: 42.896995544433594, LR: 0.0003
+INFO:__main__:Epoch 93, Iteration 35, Train Loss: 43.770263671875, LR: 0.0003
+INFO:__main__:Epoch 93, Iteration 40, Train Loss: 39.75859069824219, LR: 0.0003
+INFO:__main__:Epoch 93, Validation Loss: 40.81437821821733
+INFO:__main__:Epoch 94, Iteration 0, Train Loss: 40.27617645263672, LR: 0.0003
+INFO:__main__:Epoch 94, Iteration 5, Train Loss: 41.03461456298828, LR: 0.0003
+INFO:__main__:Epoch 94, Iteration 10, Train Loss: 40.2392692565918, LR: 0.0003
+INFO:__main__:Epoch 94, Iteration 15, Train Loss: 37.970298767089844, LR: 0.0003
+INFO:__main__:Epoch 94, Iteration 20, Train Loss: 41.8820686340332, LR: 0.0003
+INFO:__main__:Epoch 94, Iteration 25, Train Loss: 43.20416259765625, LR: 0.0003
+INFO:__main__:Epoch 94, Iteration 30, Train Loss: 40.32192611694336, LR: 0.0003
+INFO:__main__:Epoch 94, Iteration 35, Train Loss: 41.027854919433594, LR: 0.0003
+INFO:__main__:Epoch 94, Iteration 40, Train Loss: 39.98575973510742, LR: 0.0003
+INFO:__main__:Epoch 94, Validation Loss: 40.861198078502305
+INFO:__main__:Epoch 95, Iteration 0, Train Loss: 41.66316223144531, LR: 0.0003
+INFO:__main__:Epoch 95, Iteration 5, Train Loss: 51.69648361206055, LR: 0.0003
+INFO:__main__:Epoch 95, Iteration 10, Train Loss: 42.972511291503906, LR: 0.0003
+INFO:__main__:Epoch 95, Iteration 15, Train Loss: 43.68989562988281, LR: 0.0003
+INFO:__main__:Epoch 95, Iteration 20, Train Loss: 47.741485595703125, LR: 0.0003
+INFO:__main__:Epoch 95, Iteration 25, Train Loss: 41.28428649902344, LR: 0.0003
+INFO:__main__:Epoch 95, Iteration 30, Train Loss: 41.41313552856445, LR: 0.0003
+INFO:__main__:Epoch 95, Iteration 35, Train Loss: 35.77354431152344, LR: 0.0003
+INFO:__main__:Epoch 95, Iteration 40, Train Loss: 41.550636291503906, LR: 0.0003
+INFO:__main__:Epoch 95, Validation Loss: 40.8425969210538
+INFO:__main__:Epoch 96, Iteration 0, Train Loss: 42.64315414428711, LR: 0.0003
+INFO:__main__:Epoch 96, Iteration 5, Train Loss: 38.99653244018555, LR: 0.0003
+INFO:__main__:Epoch 96, Iteration 10, Train Loss: 40.35195541381836, LR: 0.0003
+INFO:__main__:Epoch 96, Iteration 15, Train Loss: 43.000511169433594, LR: 0.0003
+INFO:__main__:Epoch 96, Iteration 20, Train Loss: 42.513755798339844, LR: 0.0003
+INFO:__main__:Epoch 96, Iteration 25, Train Loss: 40.708526611328125, LR: 0.0003
+INFO:__main__:Epoch 96, Iteration 30, Train Loss: 43.677669525146484, LR: 0.0003
+INFO:__main__:Epoch 96, Iteration 35, Train Loss: 41.144691467285156, LR: 0.0003
+INFO:__main__:Epoch 96, Iteration 40, Train Loss: 39.44609069824219, LR: 0.0003
+INFO:__main__:Epoch 96, Validation Loss: 40.82263461026278
+INFO:__main__:Epoch 97, Iteration 0, Train Loss: 39.95815658569336, LR: 0.0003
+INFO:__main__:Epoch 97, Iteration 5, Train Loss: 43.91563034057617, LR: 0.0003
+INFO:__main__:Epoch 97, Iteration 10, Train Loss: 41.02711486816406, LR: 0.0003
+INFO:__main__:Epoch 97, Iteration 15, Train Loss: 41.441802978515625, LR: 0.0003
+INFO:__main__:Epoch 97, Iteration 20, Train Loss: 44.22649383544922, LR: 0.0003
+INFO:__main__:Epoch 97, Iteration 25, Train Loss: 42.921302795410156, LR: 0.0003
+INFO:__main__:Epoch 97, Iteration 30, Train Loss: 41.33140563964844, LR: 0.0003
+INFO:__main__:Epoch 97, Iteration 35, Train Loss: 38.880088806152344, LR: 0.0003
+INFO:__main__:Epoch 97, Iteration 40, Train Loss: 42.765403747558594, LR: 0.0003
+INFO:__main__:Epoch 97, Validation Loss: 40.91152156483043
+INFO:__main__:Epoch 98, Iteration 0, Train Loss: 38.842037200927734, LR: 0.0003
+INFO:__main__:Epoch 98, Iteration 5, Train Loss: 44.37992477416992, LR: 0.0003
+INFO:__main__:Epoch 98, Iteration 10, Train Loss: 40.48936462402344, LR: 0.0003
+INFO:__main__:Epoch 98, Iteration 15, Train Loss: 45.26537322998047, LR: 0.0003
+INFO:__main__:Epoch 98, Iteration 20, Train Loss: 39.28376007080078, LR: 0.0003
+INFO:__main__:Epoch 98, Iteration 25, Train Loss: 38.977169036865234, LR: 0.0003
+INFO:__main__:Epoch 98, Iteration 30, Train Loss: 39.67504119873047, LR: 0.0003
+INFO:__main__:Epoch 98, Iteration 35, Train Loss: 44.03972625732422, LR: 0.0003
+INFO:__main__:Epoch 98, Iteration 40, Train Loss: 41.575531005859375, LR: 0.0003
+INFO:__main__:Epoch 98, Validation Loss: 40.84064136851918
+INFO:__main__:Epoch 99, Iteration 0, Train Loss: 40.355133056640625, LR: 0.0003
+INFO:__main__:Epoch 99, Iteration 5, Train Loss: 41.92993927001953, LR: 0.0003
+INFO:__main__:Epoch 99, Iteration 10, Train Loss: 38.77411651611328, LR: 0.0003
+INFO:__main__:Epoch 99, Iteration 15, Train Loss: 41.2156867980957, LR: 0.0003
+INFO:__main__:Epoch 99, Iteration 20, Train Loss: 40.939598083496094, LR: 0.0003
+INFO:__main__:Epoch 99, Iteration 25, Train Loss: 41.83056640625, LR: 0.0003
+INFO:__main__:Epoch 99, Iteration 30, Train Loss: 39.428749084472656, LR: 0.0003
+INFO:__main__:Epoch 99, Iteration 35, Train Loss: 41.329219818115234, LR: 0.0003
+INFO:__main__:Epoch 99, Iteration 40, Train Loss: 40.12144088745117, LR: 0.0003
+INFO:__main__:Epoch 99, Validation Loss: 40.81319358132102
+INFO:__main__:Epoch 100, Iteration 0, Train Loss: 40.67530059814453, LR: 0.0003
+INFO:__main__:Epoch 100, Iteration 5, Train Loss: 38.210018157958984, LR: 0.0003
+INFO:__main__:Epoch 100, Iteration 10, Train Loss: 41.42782211303711, LR: 0.0003
+INFO:__main__:Epoch 100, Iteration 15, Train Loss: 38.01728057861328, LR: 0.0003
+INFO:__main__:Epoch 100, Iteration 20, Train Loss: 41.05591583251953, LR: 0.0003
+INFO:__main__:Epoch 100, Iteration 25, Train Loss: 44.330101013183594, LR: 0.0003
+INFO:__main__:Epoch 100, Iteration 30, Train Loss: 39.21052551269531, LR: 0.0003
+INFO:__main__:Epoch 100, Iteration 35, Train Loss: 44.66503143310547, LR: 0.0003
+INFO:__main__:Epoch 100, Iteration 40, Train Loss: 45.45685958862305, LR: 0.0003
+INFO:__main__:Epoch 100, Validation Loss: 40.84767046841708
+INFO:__main__:Epoch 101, Iteration 0, Train Loss: 42.471534729003906, LR: 0.0003
+INFO:__main__:Epoch 101, Iteration 5, Train Loss: 40.29326629638672, LR: 0.0003
+INFO:__main__:Epoch 101, Iteration 10, Train Loss: 40.47374725341797, LR: 0.0003
+INFO:__main__:Epoch 101, Iteration 15, Train Loss: 41.72614288330078, LR: 0.0003
+INFO:__main__:Epoch 101, Iteration 20, Train Loss: 40.35054016113281, LR: 0.0003
+INFO:__main__:Epoch 101, Iteration 25, Train Loss: 40.00918960571289, LR: 0.0003
+INFO:__main__:Epoch 101, Iteration 30, Train Loss: 45.127174377441406, LR: 0.0003
+INFO:__main__:Epoch 101, Iteration 35, Train Loss: 41.57209014892578, LR: 0.0003
+INFO:__main__:Epoch 101, Iteration 40, Train Loss: 41.02196502685547, LR: 0.0003
+INFO:__main__:Epoch 101, Validation Loss: 40.881980895996094
+INFO:__main__:Epoch 102, Iteration 0, Train Loss: 39.974342346191406, LR: 0.0003
+INFO:__main__:Epoch 102, Iteration 5, Train Loss: 42.14024353027344, LR: 0.0003
+INFO:__main__:Epoch 102, Iteration 10, Train Loss: 39.72411346435547, LR: 0.0003
+INFO:__main__:Epoch 102, Iteration 15, Train Loss: 42.06351089477539, LR: 0.0003
+INFO:__main__:Epoch 102, Iteration 20, Train Loss: 42.27423858642578, LR: 0.0003
+INFO:__main__:Epoch 102, Iteration 25, Train Loss: 39.96803283691406, LR: 0.0003
+INFO:__main__:Epoch 102, Iteration 30, Train Loss: 40.80626678466797, LR: 0.0003
+INFO:__main__:Epoch 102, Iteration 35, Train Loss: 39.759544372558594, LR: 0.0003
+INFO:__main__:Epoch 102, Iteration 40, Train Loss: 42.524478912353516, LR: 0.0003
+INFO:__main__:Epoch 102, Validation Loss: 40.87290503761985
+INFO:__main__:Epoch 103, Iteration 0, Train Loss: 39.08490753173828, LR: 0.0003
+INFO:__main__:Epoch 103, Iteration 5, Train Loss: 41.07720947265625, LR: 0.0003
+INFO:__main__:Epoch 103, Iteration 10, Train Loss: 41.507537841796875, LR: 0.0003
+INFO:__main__:Epoch 103, Iteration 15, Train Loss: 38.67170333862305, LR: 0.0003
+INFO:__main__:Epoch 103, Iteration 20, Train Loss: 39.52447509765625, LR: 0.0003
+INFO:__main__:Epoch 103, Iteration 25, Train Loss: 41.63282775878906, LR: 0.0003
+INFO:__main__:Epoch 103, Iteration 30, Train Loss: 40.51480484008789, LR: 0.0003
+INFO:__main__:Epoch 103, Iteration 35, Train Loss: 40.805145263671875, LR: 0.0003
+INFO:__main__:Epoch 103, Iteration 40, Train Loss: 42.667503356933594, LR: 0.0003
+INFO:__main__:Epoch 103, Validation Loss: 40.87669615312056
+INFO:__main__:Epoch 104, Iteration 0, Train Loss: 43.06272888183594, LR: 0.0003
+INFO:__main__:Epoch 104, Iteration 5, Train Loss: 39.08525085449219, LR: 0.0003
+INFO:__main__:Epoch 104, Iteration 10, Train Loss: 42.50669860839844, LR: 0.0003
+INFO:__main__:Epoch 104, Iteration 15, Train Loss: 40.039955139160156, LR: 0.0003
+INFO:__main__:Epoch 104, Iteration 20, Train Loss: 42.087120056152344, LR: 0.0003
+INFO:__main__:Epoch 104, Iteration 25, Train Loss: 39.33396530151367, LR: 0.0003
+INFO:__main__:Epoch 104, Iteration 30, Train Loss: 40.87928009033203, LR: 0.0003
+INFO:__main__:Epoch 104, Iteration 35, Train Loss: 45.048240661621094, LR: 0.0003
+INFO:__main__:Epoch 104, Iteration 40, Train Loss: 38.80015563964844, LR: 0.0003
+INFO:__main__:Epoch 104, Validation Loss: 40.81479402021928
+INFO:__main__:Epoch 105, Iteration 0, Train Loss: 40.16682434082031, LR: 0.0003
+INFO:__main__:Epoch 105, Iteration 5, Train Loss: 46.51924133300781, LR: 0.0003
+INFO:__main__:Epoch 105, Iteration 10, Train Loss: 42.06147003173828, LR: 0.0003
+INFO:__main__:Epoch 105, Iteration 15, Train Loss: 39.90937042236328, LR: 0.0003
+INFO:__main__:Epoch 105, Iteration 20, Train Loss: 39.78043746948242, LR: 0.0003
+INFO:__main__:Epoch 105, Iteration 25, Train Loss: 43.54951858520508, LR: 0.0003
+INFO:__main__:Epoch 105, Iteration 30, Train Loss: 43.84767150878906, LR: 0.0003
+INFO:__main__:Epoch 105, Iteration 35, Train Loss: 42.06108474731445, LR: 0.0003
+INFO:__main__:Epoch 105, Iteration 40, Train Loss: 43.62909698486328, LR: 0.0003
+INFO:__main__:Epoch 105, Validation Loss: 40.84893729469993
+INFO:__main__:Epoch 106, Iteration 0, Train Loss: 41.54657745361328, LR: 0.0003
+INFO:__main__:Epoch 106, Iteration 5, Train Loss: 40.59947967529297, LR: 0.0003
+INFO:__main__:Epoch 106, Iteration 10, Train Loss: 41.40354919433594, LR: 0.0003
+INFO:__main__:Epoch 106, Iteration 15, Train Loss: 39.35777282714844, LR: 0.0003
+INFO:__main__:Epoch 106, Iteration 20, Train Loss: 41.686302185058594, LR: 0.0003
+INFO:__main__:Epoch 106, Iteration 25, Train Loss: 42.047149658203125, LR: 0.0003
+INFO:__main__:Epoch 106, Iteration 30, Train Loss: 43.2831916809082, LR: 0.0003
+INFO:__main__:Epoch 106, Iteration 35, Train Loss: 41.421836853027344, LR: 0.0003
+INFO:__main__:Epoch 106, Iteration 40, Train Loss: 40.6090202331543, LR: 0.0003
+INFO:__main__:Epoch 106, Validation Loss: 40.898175326260656
+INFO:__main__:Epoch 107, Iteration 0, Train Loss: 41.658836364746094, LR: 0.0003
+INFO:__main__:Epoch 107, Iteration 5, Train Loss: 38.554176330566406, LR: 0.0003
+INFO:__main__:Epoch 107, Iteration 10, Train Loss: 40.64529037475586, LR: 0.0003
+INFO:__main__:Epoch 107, Iteration 15, Train Loss: 40.118370056152344, LR: 0.0003
+INFO:__main__:Epoch 107, Iteration 20, Train Loss: 41.225929260253906, LR: 0.0003
+INFO:__main__:Epoch 107, Iteration 25, Train Loss: 41.82664108276367, LR: 0.0003
+INFO:__main__:Epoch 107, Iteration 30, Train Loss: 42.935874938964844, LR: 0.0003
+INFO:__main__:Epoch 107, Iteration 35, Train Loss: 41.560646057128906, LR: 0.0003
+INFO:__main__:Epoch 107, Iteration 40, Train Loss: 43.58634567260742, LR: 0.0003
+INFO:__main__:Epoch 107, Validation Loss: 40.85890440507369
+INFO:__main__:Epoch 108, Iteration 0, Train Loss: 40.20914077758789, LR: 0.0003
+INFO:__main__:Epoch 108, Iteration 5, Train Loss: 41.20286178588867, LR: 0.0003
+INFO:__main__:Epoch 108, Iteration 10, Train Loss: 42.70323181152344, LR: 0.0003
+INFO:__main__:Epoch 108, Iteration 15, Train Loss: 39.81929016113281, LR: 0.0003
+INFO:__main__:Epoch 108, Iteration 20, Train Loss: 40.72904586791992, LR: 0.0003
+INFO:__main__:Epoch 108, Iteration 25, Train Loss: 41.416717529296875, LR: 0.0003
+INFO:__main__:Epoch 108, Iteration 30, Train Loss: 41.994483947753906, LR: 0.0003
+INFO:__main__:Epoch 108, Iteration 35, Train Loss: 43.022560119628906, LR: 0.0003
+INFO:__main__:Epoch 108, Iteration 40, Train Loss: 40.617027282714844, LR: 0.0003
+INFO:__main__:Epoch 108, Validation Loss: 40.87836282903498
+INFO:__main__:Epoch 109, Iteration 0, Train Loss: 40.85682678222656, LR: 0.0003
+INFO:__main__:Epoch 109, Iteration 5, Train Loss: 42.289119720458984, LR: 0.0003
+INFO:__main__:Epoch 109, Iteration 10, Train Loss: 42.518070220947266, LR: 0.0003
+INFO:__main__:Epoch 109, Iteration 15, Train Loss: 42.51924133300781, LR: 0.0003
+INFO:__main__:Epoch 109, Iteration 20, Train Loss: 40.42870330810547, LR: 0.0003
+INFO:__main__:Epoch 109, Iteration 25, Train Loss: 39.647071838378906, LR: 0.0003
+INFO:__main__:Epoch 109, Iteration 30, Train Loss: 40.402000427246094, LR: 0.0003
+INFO:__main__:Epoch 109, Iteration 35, Train Loss: 39.29854965209961, LR: 0.0003
+INFO:__main__:Epoch 109, Iteration 40, Train Loss: 39.40557098388672, LR: 0.0003
+INFO:__main__:Epoch 109, Validation Loss: 40.84821701049805
+INFO:__main__:Epoch 110, Iteration 0, Train Loss: 43.3815803527832, LR: 0.0003
+INFO:__main__:Epoch 110, Iteration 5, Train Loss: 38.69675827026367, LR: 0.0003
+INFO:__main__:Epoch 110, Iteration 10, Train Loss: 40.05290985107422, LR: 0.0003
+INFO:__main__:Epoch 110, Iteration 15, Train Loss: 41.99346160888672, LR: 0.0003
+INFO:__main__:Epoch 110, Iteration 20, Train Loss: 41.24491882324219, LR: 0.0003
+INFO:__main__:Epoch 110, Iteration 25, Train Loss: 41.38231658935547, LR: 0.0003
+INFO:__main__:Epoch 110, Iteration 30, Train Loss: 40.594024658203125, LR: 0.0003
+INFO:__main__:Epoch 110, Iteration 35, Train Loss: 42.771209716796875, LR: 0.0003
+INFO:__main__:Epoch 110, Iteration 40, Train Loss: 46.03128433227539, LR: 0.0003
+INFO:__main__:Epoch 110, Validation Loss: 40.83462212302468
+INFO:__main__:Epoch 111, Iteration 0, Train Loss: 40.43779754638672, LR: 0.0003
+INFO:__main__:Epoch 111, Iteration 5, Train Loss: 42.32794952392578, LR: 0.0003
+INFO:__main__:Epoch 111, Iteration 10, Train Loss: 41.65846252441406, LR: 0.0003
+INFO:__main__:Epoch 111, Iteration 15, Train Loss: 42.70601272583008, LR: 0.0003
+INFO:__main__:Epoch 111, Iteration 20, Train Loss: 39.57469940185547, LR: 0.0003
+INFO:__main__:Epoch 111, Iteration 25, Train Loss: 40.51243591308594, LR: 0.0003
+INFO:__main__:Epoch 111, Iteration 30, Train Loss: 39.734195709228516, LR: 0.0003
+INFO:__main__:Epoch 111, Iteration 35, Train Loss: 41.125919342041016, LR: 0.0003
+INFO:__main__:Epoch 111, Iteration 40, Train Loss: 38.941078186035156, LR: 0.0003
+INFO:__main__:Epoch 111, Validation Loss: 40.8994535966353
+INFO:__main__:Epoch 112, Iteration 0, Train Loss: 39.63823699951172, LR: 0.0003
+INFO:__main__:Epoch 112, Iteration 5, Train Loss: 39.317893981933594, LR: 0.0003
+INFO:__main__:Epoch 112, Iteration 10, Train Loss: 39.641502380371094, LR: 0.0003
+INFO:__main__:Epoch 112, Iteration 15, Train Loss: 42.36412811279297, LR: 0.0003
+INFO:__main__:Epoch 112, Iteration 20, Train Loss: 41.150169372558594, LR: 0.0003
+INFO:__main__:Epoch 112, Iteration 25, Train Loss: 38.174156188964844, LR: 0.0003
+INFO:__main__:Epoch 112, Iteration 30, Train Loss: 41.61858367919922, LR: 0.0003
+INFO:__main__:Epoch 112, Iteration 35, Train Loss: 40.94470977783203, LR: 0.0003
+INFO:__main__:Epoch 112, Iteration 40, Train Loss: 44.364723205566406, LR: 0.0003
+INFO:__main__:Epoch 112, Validation Loss: 40.932706659490414
+INFO:__main__:Epoch 113, Iteration 0, Train Loss: 43.15284729003906, LR: 0.0003
+INFO:__main__:Epoch 113, Iteration 5, Train Loss: 41.339317321777344, LR: 0.0003
+INFO:__main__:Epoch 113, Iteration 10, Train Loss: 42.78138732910156, LR: 0.0003
+INFO:__main__:Epoch 113, Iteration 15, Train Loss: 40.647926330566406, LR: 0.0003
+INFO:__main__:Epoch 113, Iteration 20, Train Loss: 40.776466369628906, LR: 0.0003
+INFO:__main__:Epoch 113, Iteration 25, Train Loss: 43.98081588745117, LR: 0.0003
+INFO:__main__:Epoch 113, Iteration 30, Train Loss: 42.035343170166016, LR: 0.0003
+Killed
