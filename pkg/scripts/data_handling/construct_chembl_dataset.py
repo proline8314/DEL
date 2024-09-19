@@ -10,14 +10,14 @@ import tensorboard as tb
 import torch
 import torch.nn as nn
 import torch.optim as optim
-from datasets.chembl_dataset import FULL_NAME_DICT, ChemBLActivityDataset
-from datasets.lmdb_dataset import LMDBDataset
-from models.ref_net import DELRefDecoder, DELRefEncoder, DELRefNet
 from rdkit import Chem
 from rdkit.Chem import AllChem
 from sklearn.model_selection import train_test_split
 from torch_geometric.nn import global_mean_pool as gap
 from tqdm import tqdm
+
+from ...datasets.chembl_dataset import FULL_NAME_DICT, ChemBLActivityDataset
+from ...datasets.lmdb_dataset import LMDBDataset
 
 if __name__ == "__main__":
     # Set up logging
@@ -29,10 +29,10 @@ if __name__ == "__main__":
     # dataset
     parser.add_argument("--seed", type=int, default=4)
     parser.add_argument("--data_path", type=str, default="/data03/gtguo/data/chembl/lmdb/chembl_activity.lmdb")
-    parser.add_argument("--output_dir", type=str, default="/data03/gtguo/data/chembl/lmdb/target_hits/sEH")
-    parser.add_argument("--target_name", type=str, default="sEH")
+    parser.add_argument("--output_dir", type=str, default="/data03/gtguo/data/chembl/lmdb/target_hits/ca9")
+    parser.add_argument("--target_name", type=str, default="ca9")
     parser.add_argument("--inactive_multiplier", type=int, default=10)
-    parser.add_argument("--active_score_threshold", type=float, default=4.0)
+    parser.add_argument("--active_score_threshold", type=float, default=6.0)
 
 
     args = parser.parse_args()

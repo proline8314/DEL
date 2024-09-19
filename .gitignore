@@ -5,3 +5,4 @@ code/scripts/
 *.pth
 log
 .vscode/
+**/__pycache__/
