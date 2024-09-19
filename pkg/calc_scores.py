@@ -38,17 +38,9 @@ if __name__ == "__main__":
     parser.add_argument("--save_path", type=str, default="E:\Research\del\data\weights")
     parser.add_argument("--update_loss", action="store_true")
     # dataset
-    parser.add_argument(
-        "--dataset_fpath",
-        type=str,
-        default="E:/Research/del/data/lmdb/002_CAIX_feat.lmdb",
-    )
-    parser.add_argument("--target_name", type=str, default="CA9")
+    parser.add_argument("--positive_dataset_fpath", type=str, required=True)
+    parser.add_argument("--negative_dataset_fpath", type=str, required=True)
     parser.add_argument("--map_size", type=int, default=1024**3 * 16)
-
-    # data split
-    parser.add_argument("--train_size", type=float, default=0.8)
-    parser.add_argument("--valid_size", type=float, default=0.2)
 
     # dataloader
     parser.add_argument("--num_workers", type=int, default=0)

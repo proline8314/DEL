@@ -52,7 +52,8 @@ def get_node_features(mol: Chem.Mol, **kwargs) -> torch.Tensor:
         node_features.append(node_feature)
 
     node_features = np.asarray(node_features)
-    return torch.tensor(node_features, dtype=torch.float)
+    # return torch.tensor(node_features, dtype=torch.float)
+    return node_features
 
 
 def get_edge_features(mol: Chem.Mol) -> torch.Tensor:
@@ -72,7 +73,8 @@ def get_edge_features(mol: Chem.Mol) -> torch.Tensor:
         all_edge_feature.append(edge_feature)
 
     all_edge_feature = np.asarray(all_edge_feature)
-    return torch.tensor(all_edge_feature, dtype=torch.float)
+    # return torch.tensor(all_edge_feature, dtype=torch.float)
+    return all_edge_feature
 
 
 def get_edge_index(mol: Chem.Mol) -> torch.Tensor:
@@ -87,7 +89,8 @@ def get_edge_index(mol: Chem.Mol) -> torch.Tensor:
         start, end = bond.GetBeginAtomIdx(), bond.GetEndAtomIdx()
         coo.append([start, end])
         coo.append([end, start])
-    return torch.tensor(coo, dtype=torch.long).T
+    # return torch.tensor(coo, dtype=torch.long).T
+    return np.asarray(coo).astype(int).T
 
 
 def get_mol_graph_attr(mol: Chem.Mol, mol_graph: nx.Graph, key: str) -> torch.Tensor:
@@ -147,8 +150,11 @@ class SmilesFingerprint:
         if type(smiles) != str or smiles == "":
             return np.zeros(self.nBits, dtype=np.float32)
         if smiles not in self._data:
-            mol = get_mol_from_smiles(smiles)
-            mol = clean_up_mol(mol)
-            fp = self.morgan_fp.GetFingerprint(mol)
-            self._data[smiles] = np.array(fp, dtype=np.float32)
+            try:
+                mol = get_mol_from_smiles(smiles)
+                mol = clean_up_mol(mol)
+                fp = self.morgan_fp.GetFingerprint(mol)
+                self._data[smiles] = np.array(fp, dtype=np.float32)
+            except:
+                self._data[smiles] = np.zeros(self.nBits, dtype=np.float32)
         return self._data[smiles]
