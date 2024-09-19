@@ -1,2 +1,6 @@
 data/
+test/
 code/logs/
+*.pth
+log
+.vscode/
