@@ -1,6 +1,7 @@
 data/
 test/
 code/logs/
+code/scripts/
 *.pth
 log
 .vscode/
