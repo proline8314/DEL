@@ -6,9 +6,12 @@ from torch_geometric.data import Data
 from tqdm import tqdm
 
 from ..datasets.lmdb_dataset import LMDBDataset
-from ..utils.mol_feat_v2 import SmilesFingerprint, process_to_pyg_data
+from ..utils.mol_feat_v2 import (SmilesFingerprint, get_edge_features,
+                                 get_edge_index, get_node_features)
+from ..utils.utils import get_mol_from_smiles
 
-dataset_fpath = "E:/Research/del/data/lmdb/002_CAIX.lmdb"
+dataset_fpath = "/data03/gtguo/data/DEL/CA2/lmdb/002_CAIX_idx.lmdb"
+output_fpath = "/data03/gtguo/data/DEL/CA2/lmdb/002_CAIX_feat.lmdb"
 
 sfpg = SmilesFingerprint(radius=2, nBits=2048)
 
@@ -25,19 +28,25 @@ bb_edge_idx = [
 """
 # branched backbone
 bb_edge_idx = [
-    [0, 2],
-    [2, 0],
-    [2, 1],
+    [0, 1],
+    [1, 0],
     [1, 2],
-    [2, 3],
-    [3, 2],
+    [2, 1],
+    [1, 3],
+    [3, 1],
 ]
 
 
 def feat_fn(sample: dict) -> dict:
     # pyg data
-    mol_data = process_to_pyg_data(sample["smiles"])
-    mol_data["synthon_index"] = torch.LongTensor(sample["synthon_index"])
+    try:
+        mol = get_mol_from_smiles(sample["smiles"])
+    except:
+        mol = get_mol_from_smiles(sample["smiles"], sanitize=False)
+
+    mol_x = get_node_features(mol)
+    mol_edge_idx = get_edge_index(mol)
+    mol_edge_attr = get_edge_features(mol)
 
     # fingerprint
     bb_fingerprints = [sfpg("")]
@@ -48,16 +57,20 @@ def feat_fn(sample: dict) -> dict:
         bb_fingerprints.append(bb_fingerprint)
 
     bb_x = np.vstack(bb_fingerprints)
-    bb_data = Data(
-        x=torch.LongTensor(bb_x),
-        edge_index=torch.tensor(bb_edge_idx, dtype=torch.long).T,
-    )
 
     _sample = {}
-    _sample["bb_pyg_data"] = bb_data
-    _sample["pyg_data"] = mol_data
-    _sample["readout"] = to_tensor(sample["readout"])
-
+    _sample["bb_pyg_data"] = {
+        "x": bb_x,
+        "edge_index": np.array(bb_edge_idx).T,
+    }
+    _sample["pyg_data"] = {
+        "x": mol_x,
+        "edge_index": mol_edge_idx,
+        "edge_attr": mol_edge_attr,
+        "synthon_index" : sample["synthon_index"],
+    }
+    _sample["readout"] = sample["readout"]
+    _sample["idx"] = sample["idx"]
     return _sample
 
 
@@ -74,9 +87,9 @@ def to_tensor(nested_dict: dict) -> dict:
 if __name__ == "__main__":
     dataset = LMDBDataset.static_from_raw(
         *os.path.split(dataset_fpath),
-        *os.path.split("E:/Research/del/data/lmdb/002_CAIX_feat.lmdb"),
-        map_size=1024**3 * 16,
+        *os.path.split(output_fpath),
         nprocs=4,
         process_fn=feat_fn,
     )
     print(dataset[0])
+    print(len(dataset))

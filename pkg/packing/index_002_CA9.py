@@ -12,7 +12,8 @@ from ..utils.utils import get_mol_from_smiles, standardize_smiles
 # close warnings
 warnings.filterwarnings("ignore")
 
-dataset_fpath = "E:/Research/del/data/lmdb/002_CAIX.lmdb"
+dataset_fpath = "/data03/gtguo/data/DEL/CA2/lmdb/002_CAIX.lmdb"
+output_fpath = "/data03/gtguo/data/DEL/CA2/lmdb/002_CAIX_idx.lmdb"
 
 
 def handle_sample(sample: dict) -> dict:
@@ -34,7 +35,8 @@ def handle_sample(sample: dict) -> dict:
     return sample
 
 
-dataset = LMDBDataset.update_process_fn(handle_sample).override_raw(
-    *os.path.split(dataset_fpath), map_size=1024**3 * 16,
+dataset = LMDBDataset.update_process_fn(handle_sample).static_from_raw(
+    *os.path.split(dataset_fpath), *os.path.split(output_fpath)
 )
 print(dataset[0])
+print(len(dataset))

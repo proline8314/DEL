@@ -26,25 +26,25 @@ if __name__ == "__main__":
     # Set up arguments
     parser = argparse.ArgumentParser()
     # general
-    parser.add_argument("--name", type=str, default="ca9_czip")
+    parser.add_argument("--name", type=str, default="ca9_zip_500")
     parser.add_argument("--seed", type=int, default=4)
-    parser.add_argument("--device", type=str, default="cuda")
+    parser.add_argument("--device", type=str, default="cuda:0")
     parser.add_argument("--batch_size", type=int, default=3072)
-    parser.add_argument("--epochs", type=int, default=100)
+    parser.add_argument("--epochs", type=int, default=500)
     parser.add_argument("--lr", type=float, default=3e-4)
     parser.add_argument("--weight_decay", type=float, default=1e-4)
-    parser.add_argument("--log_interval", type=int, default=5)
-    parser.add_argument("--save_interval", type=int, default=5)
-    parser.add_argument("--save_path", type=str, default="E:\Research\del\data\weights")
+    parser.add_argument("--log_interval", type=int, default=10)
+    parser.add_argument("--save_interval", type=int, default=20)
+    parser.add_argument("--save_path", type=str, default="/data03/gtguo/del/refnet_weight")
     parser.add_argument("--update_loss", action="store_true")
     # dataset
     parser.add_argument(
         "--dataset_fpath",
         type=str,
-        default="E:/Research/del/data/lmdb/002_CAIX_feat.lmdb",
+        default="/data03/gtguo/data/DEL/CA2/lmdb/002_CAIX_feat.lmdb",
     )
     parser.add_argument("--target_name", type=str, default="CA9")
-    parser.add_argument("--map_size", type=int, default=1024**3 * 16)
+    # parser.add_argument("--map_size", type=int, default=1024**3 * 16)
 
     # data split
     parser.add_argument("--train_size", type=float, default=0.8)
@@ -78,7 +78,7 @@ if __name__ == "__main__":
 
     # record
     parser.add_argument(
-        "--record_path", type=str, default="E:/Research/del/data/records/refnet"
+        "--record_path", type=str, default="/data03/gtguo/del/refnet_record"
     )
 
     # scheduler
@@ -231,13 +231,14 @@ if __name__ == "__main__":
             _sample = {}
             bb_pyg_data = Data(
                 x=torch.LongTensor(sample["bb_pyg_data"]["x"]),
-                edge_index=torch.LongTensor(sample["bb_pyg_data"]["edge_idx"]),
+                edge_index=torch.LongTensor(sample["bb_pyg_data"]["edge_index"]),
             )
             _sample["bb_pyg_data"] = bb_pyg_data
             pyg_data = Data(
-                x=torch.tensor(sample["pyg_data"]["x"]),
-                edge_index=torch.LongTensor(sample["pyg_data"]["edge_idx"]),
-                edge_attr=torch.tensor(sample["pyg_data"]["edge_attr"]),
+                x=torch.FloatTensor(sample["pyg_data"]["x"]),
+                edge_index=torch.LongTensor(sample["pyg_data"]["edge_index"]),
+                edge_attr=torch.FloatTensor(sample["pyg_data"]["edge_attr"]),
+                synthon_index=torch.LongTensor(sample["pyg_data"]["synthon_index"]),
             )
             _sample["pyg_data"] = pyg_data
             _sample["readout"] = self.to_tensor(sample["readout"])
@@ -254,7 +255,7 @@ if __name__ == "__main__":
         
     print("Reading dataset")
     del_dataset = LMDBDataset.readonly_raw(
-        *os.path.split(args.dataset_fpath), map_size=args.map_size
+        *os.path.split(args.dataset_fpath)
     )
 
     print("Splitting dataset")

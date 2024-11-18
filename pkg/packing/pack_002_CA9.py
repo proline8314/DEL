@@ -8,8 +8,8 @@ import tqdm
 from ..datasets.lmdb_dataset import LMDBDataset
 from ..utils.utils import standardize_smiles
 
-fpath = "E:/Research/del/data/raw/002-CAIX/ja9b01203_si_002.xlsx"
-output_path = "E:/Research/del/data/lmdb/002_CAIX.lmdb"
+fpath = "/data02/gtguo/DEL/data/raw/002-CAIX/ja9b01203_si_002.xlsx"
+output_path = "/data03/gtguo/data/DEL/CA2/lmdb/002_CAIX.lmdb"
 
 bb_smiles = pd.read_excel(fpath, sheet_name="D2")
 mol_smiles = pd.read_excel(fpath, sheet_name="D5")
@@ -93,11 +93,19 @@ def index_to_dict_sample(index: int) -> Dict[str, Any]:
         "bb1_smiles": row["smiles_scaffold"],
         "bb2_smiles": row["smiles_bb1"],
         "bb3_smiles": row["smiles_bb2"],
+        "idx": {
+            "scaffold": row["scaffold"],
+            "bb1": row["BB1"],
+            "bb2": row["BB2"],
+        },
     }
 
 
 dataset = [index_to_dict_sample(index) for index in tqdm.tqdm(range(len(dataset)))]
 # save dataset
 print(dataset[0])
-dataset = LMDBDataset.static_from_others(dataset, *os.path.split(output_path), forced_process=True, map_size=1024**3 * 16)
+dataset = LMDBDataset.static_from_others(
+    dataset, *os.path.split(output_path), forced_process=True
+)
 print(dataset[0])
+print(len(dataset))
