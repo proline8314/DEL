@@ -6,3 +6,5 @@ code/scripts/
 log
 .vscode/
 **/__pycache__/
+*.tar*
+*.ipynb

@@ -415,21 +415,65 @@ class LMDBDataset(Dataset, IFile):
         return data
 
     def _process_others_multiprocessing(self) -> Dict[Hashable, Any]:
-        # TODO multiprocessing update
+        # TODO testing multiprocessing update
         data = {}
-        logging.info("processing dataset...")
-        with Pool(self.nprocs) as pool:
-            for idx, sample in tqdm(
-                enumerate(
-                    pool.imap(
-                        self.process,
-                        self.source_dataset,
-                        chunksize=100,
-                    )
-                ),
-                total=len(self.source_dataset),
-            ):
-                data[idx] = sample
+
+        global copy_process
+        copy_process = copy.copy(self.process)
+
+        maximum_dataset_slice = 10_000
+        _len_source_dataset = len(self.source_dataset)
+        range_generators = [
+            range(
+                maximum_dataset_slice * i,
+                min(maximum_dataset_slice * (i + 1), _len_source_dataset),
+            )
+            for i in range(
+                np.ceil(_len_source_dataset / maximum_dataset_slice).astype(
+                    int
+                )
+            )
+        ]
+
+        if len(range_generators) > 1 and self.dynamic:
+            logging.warning(
+                "The dataset is too large to be processed in one slice, dynamic processing is not supported."
+            )
+            sys.exit(1)
+
+        logging.info("processing dataset with multiprocessing...")
+        logging.info(f"nprocs: {self.nprocs}")
+        logging.info(f"total slices: {len(range_generators)}")
+
+        for outer_idx, range_generator in enumerate(range_generators):
+            with Pool(self.nprocs) as pool:
+                for idx, sample in tqdm(
+                    enumerate(
+                        pool.imap(
+                            copy_process,
+                            (
+                                self.source_dataset[i]
+                                for i in range_generator
+                            ),
+                            chunksize=100,
+                        )
+                    ),
+                    total=len(range_generator),
+                ):
+                    data_idx = idx + maximum_dataset_slice * outer_idx
+                    data[data_idx] = sample
+
+            # logging.info(f"Hit the maximum dataset slice: {maximum_dataset_slice}")
+
+            self._data = data
+            self.save(self.processed_fpath)
+
+            # ! release memory
+            self._data = None
+            del data
+            gc.collect()
+            data = {}
+            
         return data
 
     @staticmethod

@@ -113,7 +113,7 @@ class RefNetV2(nn.Module):
         yield_pred = self.mul_agg(yield_pred, synthon_edge_batch)
         return yield_pred
 
-    def get_affinity(self, molecule_node_vec, molecule_batch):
+    def get_affinity(self, molecule_node_vec, molecule_batch, softplus=True):
         # molecule_node_vec: (num_nodes, node_embedding_size)
         # * calculate pairwise affinity
         # affinity_pred: (num_nodes, 2)
@@ -124,7 +124,11 @@ class RefNetV2(nn.Module):
         affinity_pred = self.sum_agg(affinity_pred, molecule_batch)
 
         # * convert the energy to equilibrium constant
-        affinity_pred = self.softplus(affinity_pred)
+        # !? by design, the activation should be contained in the head
+        # !? this means I made a mistake here, sadly
+        # !? for forward compatibility, a default-true switch is added
+        if softplus:
+            affinity_pred = self.softplus(affinity_pred)
         return affinity_pred
 
     def _get_edge_batch(self, edge_idx, batch):

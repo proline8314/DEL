@@ -40,7 +40,7 @@ class ZIPLoss(nn.Module):
         nll = torch.mean(nll)
         return nll
 
-    def forward(self, input, real_count):
+    def forward(self, input, real_count, return_loss=False):
         r"""input and real_count must be non-negative"""
         # clip inflat probabilities
         self.matrix_inflat_prob.data.clamp_(self.eps, 1 - self.eps)
@@ -57,7 +57,10 @@ class ZIPLoss(nn.Module):
         nll_tgt = self.ZIP_nll(c_pred_tgt, c_tgt, self.target_inflat_prob)
         nll_mat = self.ZIP_nll(c_pred_mat, c_mat, self.matrix_inflat_prob)
         nll = nll_tgt + nll_mat
-        return nll
+        if return_loss:
+            return nll, nll_tgt, nll_mat
+        else:
+            return nll
 
 
 class CorrectedZIPLoss(nn.Module):

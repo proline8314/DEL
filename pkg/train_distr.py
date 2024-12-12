@@ -1,6 +1,7 @@
 import argparse
 import logging
 import os
+from time import time
 
 import numpy as np
 import tensorboard as tb
@@ -26,24 +27,36 @@ if __name__ == "__main__":
     # Set up arguments
     parser = argparse.ArgumentParser()
     # general
-    parser.add_argument("--name", type=str, default="ca9_czip")
+    parser.add_argument("--name", type=str, default="ca9_czip_500")
     parser.add_argument("--seed", type=int, default=4)
-    parser.add_argument("--device", type=str, default="cuda")
-    parser.add_argument("--batch_size", type=int, default=3072)
-    parser.add_argument("--epochs", type=int, default=100)
+    parser.add_argument("--device", type=str, default="cuda:1")
+    parser.add_argument("--device_ids", type=str, default="1,2,3")
+    parser.add_argument("--batch_size", type=int, default=2048)
+    parser.add_argument("--epochs", type=int, default=500)
     parser.add_argument("--lr", type=float, default=3e-4)
     parser.add_argument("--weight_decay", type=float, default=1e-4)
-    parser.add_argument("--log_interval", type=int, default=5)
-    parser.add_argument("--save_interval", type=int, default=5)
-    parser.add_argument("--save_path", type=str, default="E:\Research\del\data\weights")
+    parser.add_argument("--log_interval", type=int, default=10)
+    parser.add_argument("--save_interval", type=int, default=20)
+    parser.add_argument(
+        "--save_path", type=str, default="/data03/gtguo/del/refnet_weight"
+    )
     parser.add_argument("--update_loss", action="store_true")
+
     # dataset
-    parser.add_argument("--positive_dataset_fpath", type=str, required=True)
-    parser.add_argument("--negative_dataset_fpath", type=str, required=True)
-    parser.add_argument("--map_size", type=int, default=1024**3 * 16)
+    parser.add_argument(
+        "--dataset_fpath",
+        type=str,
+        default="/data03/gtguo/data/DEL/CA2/lmdb/002_CAIX_feat.lmdb",
+    )
+    parser.add_argument("--target_name", type=str, default="CA9")
+    # parser.add_argument("--map_size", type=int, default=1024**3 * 16)
+
+    # data split
+    parser.add_argument("--train_size", type=float, default=0.8)
+    parser.add_argument("--valid_size", type=float, default=0.2)
 
     # dataloader
-    parser.add_argument("--num_workers", type=int, default=0)
+    parser.add_argument("--num_workers", type=int, default=8)
     parser.add_argument("--collate_dataset", action="store_true")
 
     # model
@@ -70,7 +83,7 @@ if __name__ == "__main__":
 
     # record
     parser.add_argument(
-        "--record_path", type=str, default="E:/Research/del/data/records/refnet"
+        "--record_path", type=str, default="/data03/gtguo/del/refnet_record"
     )
 
     # scheduler
@@ -93,6 +106,11 @@ if __name__ == "__main__":
         os.makedirs(tb_path)
     writer = SummaryWriter(tb_path)
 
+    # data parallel
+
+    device_ids = [int(i) for i in args.device_ids.split(",")]
+
+    
     # Set up device
     device = torch.device(args.device if torch.cuda.is_available() else "cpu")
 
@@ -146,7 +164,7 @@ if __name__ == "__main__":
         bidirectional_pipes=pipes,
         reaction_yield_head=yield_head,
         affinity_head=affinity_head,
-    ).to(device)
+    )
 
     logger.info(f"Model has {sum(p.numel() for p in model.parameters())} parameters")
 
@@ -211,7 +229,7 @@ if __name__ == "__main__":
 
         def __getitem__(self, idx):
             return self.collate_fn(self.dataset[idx])
-        
+
         def collate_fn(self, sample):
             """
             sample: {
@@ -223,13 +241,14 @@ if __name__ == "__main__":
             _sample = {}
             bb_pyg_data = Data(
                 x=torch.LongTensor(sample["bb_pyg_data"]["x"]),
-                edge_index=torch.LongTensor(sample["bb_pyg_data"]["edge_idx"]),
+                edge_index=torch.LongTensor(sample["bb_pyg_data"]["edge_index"]),
             )
             _sample["bb_pyg_data"] = bb_pyg_data
             pyg_data = Data(
-                x=torch.tensor(sample["pyg_data"]["x"]),
-                edge_index=torch.LongTensor(sample["pyg_data"]["edge_idx"]),
-                edge_attr=torch.tensor(sample["pyg_data"]["edge_attr"]),
+                x=torch.FloatTensor(sample["pyg_data"]["x"]),
+                edge_index=torch.LongTensor(sample["pyg_data"]["edge_index"]),
+                edge_attr=torch.FloatTensor(sample["pyg_data"]["edge_attr"]),
+                synthon_index=torch.LongTensor(sample["pyg_data"]["synthon_index"]),
             )
             _sample["pyg_data"] = pyg_data
             _sample["readout"] = self.to_tensor(sample["readout"])
@@ -243,11 +262,9 @@ if __name__ == "__main__":
                 else:
                     nested_dict[k] = torch.tensor(v)
             return nested_dict
-        
+
     print("Reading dataset")
-    del_dataset = LMDBDataset.readonly_raw(
-        *os.path.split(args.dataset_fpath), map_size=args.map_size
-    )
+    del_dataset = LMDBDataset.readonly_raw(*os.path.split(args.dataset_fpath))
 
     print("Splitting dataset")
     # idxs = np.arange(len(del_dataset))
@@ -255,8 +272,10 @@ if __name__ == "__main__":
     #     idxs, train_size=args.train_size, test_size=args.valid_size
     # )
     # train_idxs = train_idxs.tolist()
-    train_idxs = np.random.choice(len(del_dataset), int(len(del_dataset) * args.train_size), replace=False).tolist()
-    
+    train_idxs = np.random.choice(
+        len(del_dataset), int(len(del_dataset) * args.train_size), replace=False
+    ).tolist()
+
     del_train_dataset, del_val_dataset = del_dataset.split_with_idx(train_idxs)
 
     if args.collate_dataset:
@@ -283,6 +302,17 @@ if __name__ == "__main__":
     if not os.path.exists(os.path.join(args.save_path, args.name)):
         os.makedirs(os.path.join(args.save_path, args.name))
 
+    # Parallel
+
+    model = nn.DataParallel(model, device_ids=device_ids, output_device=device_ids[0])
+    criterion = nn.DataParallel(criterion, device_ids=device_ids, output_device=device_ids[0])
+    optimizer = nn.DataParallel(optimizer, device_ids=device_ids, output_device=device_ids[0])
+    if args.lr_schedule:
+        lr_scheduler = nn.DataParallel(scheduler, device_ids=device_ids, output_device=device_ids[0])
+
+    model.to(device)
+    criterion.to(device)
+
     # Train
 
     def move_data_to_device(data):
@@ -293,16 +323,23 @@ if __name__ == "__main__":
                 data[k] = v.to(device)
         return data
 
+    starting_time = time()
+
     for epoch in range(args.epochs):
         model.train()
         for i, data in enumerate(del_train_loader):
-            data = move_data_to_device(data)
             optimizer.zero_grad()
+            data = move_data_to_device(data)
+            
             output = model(data["bb_pyg_data"], data["pyg_data"])
             y = torch.cat(
                 (
-                    data["readout"][args.target_name]["target"].view(-1, args.target_size),
-                    data["readout"][args.target_name]["control"].view(-1, args.matrix_size),
+                    data["readout"][args.target_name]["target"].view(
+                        -1, args.target_size
+                    ),
+                    data["readout"][args.target_name]["control"].view(
+                        -1, args.matrix_size
+                    ),
                 ),
                 dim=1,
             )
@@ -351,8 +388,9 @@ if __name__ == "__main__":
             scheduler.step()
 
         if epoch % args.save_interval == 0:
+
             torch.save(
-                model.state_dict(),
+                model.module.state_dict(),
                 os.path.join(args.save_path, args.name, f"model_{epoch}.pt"),
             )
 
@@ -372,8 +410,12 @@ if __name__ == "__main__":
                         output,
                         torch.cat(
                             (
-                                data["readout"][args.target_name]["target"].view(-1, args.target_size),
-                                data["readout"][args.target_name]["control"].view(-1, args.matrix_size),
+                                data["readout"][args.target_name]["target"].view(
+                                    -1, args.target_size
+                                ),
+                                data["readout"][args.target_name]["control"].view(
+                                    -1, args.matrix_size
+                                ),
                             ),
                             dim=1,
                         ),
@@ -389,8 +431,12 @@ if __name__ == "__main__":
                         output,
                         torch.cat(
                             (
-                                data["readout"][args.target_name]["target"].view(-1, args.target_size),
-                                data["readout"][args.target_name]["control"].view(-1, args.matrix_size),
+                                data["readout"][args.target_name]["target"].view(
+                                    -1, args.target_size
+                                ),
+                                data["readout"][args.target_name]["control"].view(
+                                    -1, args.matrix_size
+                                ),
                             ),
                             dim=1,
                         ),
@@ -405,6 +451,8 @@ if __name__ == "__main__":
                 writer.add_scalar("val/tgt_mse", np.mean(tgt_mses), epoch)
                 writer.add_scalar("val/mat_mse", np.mean(mat_mses), epoch)
 
+    logger.info(f"Training & validation took {time() - starting_time} seconds")
+
     # loss parameters
 
     # list all parameters with their names
@@ -416,7 +464,11 @@ if __name__ == "__main__":
     writer.close()
 
     # Save model
-    torch.save(model.state_dict(), os.path.join(args.save_path, args.name, "model.pt"))
+
     torch.save(
-        criterion.state_dict(), os.path.join(args.save_path, args.name, "criterion.pt")
+        model.module.state_dict(), os.path.join(args.save_path, args.name, "model.pt")
+    )
+    torch.save(
+        criterion.module.state_dict(),
+        os.path.join(args.save_path, args.name, "criterion.pt"),
     )

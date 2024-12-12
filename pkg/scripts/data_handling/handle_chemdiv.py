@@ -1,5 +1,5 @@
-from datasets.chemdiv_dataset import ChemDivDataset
-from datasets.lmdb_dataset import LMDBDataset
+from ...datasets.chemdiv_dataset import ChemDivDataset
+from ...datasets.lmdb_dataset import LMDBDataset
 
 if __name__ == '__main__':
     # dataset = ChemDivDataset()
